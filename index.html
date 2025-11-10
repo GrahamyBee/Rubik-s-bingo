@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Bingo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <main>
+            <div id="main-game-area">
+                <!-- Left Column: Logo and Rubik's Cube -->
+                <div id="left-column">
+                    <div id="logo-container">
+                        <img src="logo.jpg" alt="Rubik's Cube Bingo Logo" id="game-logo">
+                    </div>
+                    <div id="cube-container">
+                        <!-- Three.js canvas will be inserted here -->
+                    </div>
+                </div>
+                
+                <!-- Right Column: Everything else -->
+                <div id="right-column">
+                    <!-- Bingo Ball Caller -->
+                    <div id="bingo-balls-container">
+                        <div id="bingo-balls-display">
+                            <div id="current-ball-position"></div>
+                            <div id="previous-balls-container"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Controls -->
+                    <div id="game-controls">
+                        <button id="call-number-btn" class="btn btn-primary">Game Start</button>
+                        <button id="reset-game-btn" class="btn btn-secondary">Reset Game</button>
+                    </div>
+                    
+                    <!-- Player Settings -->
+                    <div id="player-settings">
+                        <div id="ai-players-control">
+                            <label for="ai-players-input">AI Players:</label>
+                            <input type="number" id="ai-players-input" min="0" max="100" value="5">
+                        </div>
+                        <div id="price-control">
+                            <label for="price-select">Price:</label>
+                            <select id="price-select">
+                                <option value="0.10">10p</option>
+                                <option value="0.25">25p</option>
+                                <option value="0.50">50p</option>
+                                <option value="1.00" selected>£1</option>
+                                <option value="2.00">£2</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="game-info">
+                        <div id="calls-made">Calls Made: <span id="call-count">0</span></div>
+                        <div id="play-mode-control">
+                            <button id="play-mode-btn" class="mode-btn auto">Auto</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Side Prizes -->
+                    <div id="side-prizes">
+                        <h3>Side Prizes</h3>
+                        <div id="side-prizes-stack">
+                            <div class="prize-box one-side-prize" data-sides="1">
+                                <div class="prize-left">
+                                    <div class="prize-header">1 Side</div>
+                                    <div class="prize-value">£5</div>
+                                </div>
+                                <div class="prize-countdown">9TG</div>
+                                <div class="winner-dropdown" style="display: none;">
+                                    <div class="winner-name">Winner: <span class="winner-text"></span></div>
+                                </div>
+                            </div>
+                            <div class="prize-box two-side-prize" data-sides="2">
+                                <div class="prize-left">
+                                    <div class="prize-header">2 Sides</div>
+                                    <div class="prize-value">£15</div>
+                                </div>
+                                <div class="prize-countdown">9TG</div>
+                                <div class="winner-dropdown" style="display: none;">
+                                    <div class="winner-name">Winner: <span class="winner-text"></span></div>
+                                </div>
+                            </div>
+                            <div class="prize-box three-side-prize" data-sides="3">
+                                <div class="prize-left">
+                                    <div class="prize-header">3 Sides</div>
+                                    <div class="prize-value">£30</div>
+                                </div>
+                                <div class="prize-countdown">9TG</div>
+                                <div class="winner-dropdown" style="display: none;">
+                                    <div class="winner-name">Winner: <span class="winner-text"></span></div>
+                                </div>
+                            </div>
+                            <div class="prize-box four-side-prize" data-sides="4">
+                                <div class="prize-left">
+                                    <div class="prize-header">4 Sides</div>
+                                    <div class="prize-value">£50</div>
+                                </div>
+                                <div class="prize-countdown">9TG</div>
+                                <div class="winner-dropdown" style="display: none;">
+                                    <div class="winner-name">Winner: <span class="winner-text"></span></div>
+                                </div>
+                            </div>
+                            <div class="prize-box five-side-prize" data-sides="5">
+                                <div class="prize-left">
+                                    <div class="prize-header">5 Sides</div>
+                                    <div class="prize-value">£75</div>
+                                </div>
+                                <div class="prize-countdown">9TG</div>
+                                <div class="winner-dropdown" style="display: none;">
+                                    <div class="winner-name">Winner: <span class="winner-text"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="win-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="win-message">Congratulations!</h2>
+                <p id="win-details"></p>
+                <div id="winner-info">
+                    <div id="winner-name"></div>
+                    <div id="winner-prize"></div>
+                </div>
+                <button id="close-modal-btn" class="btn btn-primary">Continue Playing</button>
+            </div>
+        </div>
+        
+        <div id="ai-win-modal" class="modal">
+            <div class="modal-content ai-winner">
+                <h2>🎉 WINNER! 🎉</h2>
+                <div id="ai-winner-info">
+                    <div id="ai-winner-name"></div>
+                    <div id="ai-winner-prize"></div>
+                    <div id="ai-winner-type"></div>
+                </div>
+                <button id="close-ai-modal-btn" class="btn btn-primary">Continue Playing</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

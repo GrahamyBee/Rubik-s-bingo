@@ -446,9 +446,48 @@ class RubiksCubeBingo {
             this.resetGame();
         });
         
-        // Mouse click for marking numbers
+        // Mouse click and touch events for marking numbers
         this.renderer.domElement.addEventListener('click', (event) => {
             this.onMouseClick(event);
+        });
+        
+        // Enhanced touch handling for mobile
+        let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        const maxTouchDuration = 200; // Max duration for tap (ms)
+        const maxTouchMove = 10; // Max pixel movement for tap
+        
+        this.renderer.domElement.addEventListener('touchstart', (event) => {
+            if (event.touches.length === 1) {
+                touchStartTime = Date.now();
+                const touch = event.touches[0];
+                touchStartPos.x = touch.clientX;
+                touchStartPos.y = touch.clientY;
+            }
+        }, { passive: true });
+        
+        this.renderer.domElement.addEventListener('touchend', (event) => {
+            if (event.changedTouches.length === 1) {
+                const touchEndTime = Date.now();
+                const touch = event.changedTouches[0];
+                const touchDuration = touchEndTime - touchStartTime;
+                const touchMoveDistance = Math.sqrt(
+                    Math.pow(touch.clientX - touchStartPos.x, 2) + 
+                    Math.pow(touch.clientY - touchStartPos.y, 2)
+                );
+                
+                // Only treat as tap if it was quick and didn't move much
+                if (touchDuration <= maxTouchDuration && touchMoveDistance <= maxTouchMove) {
+                    event.preventDefault();
+                    const touchEvent = {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        preventDefault: () => {},
+                        stopPropagation: () => {}
+                    };
+                    this.onMouseClick(touchEvent);
+                }
+            }
         });
         
         // Disable wheel zoom completely
@@ -1584,80 +1623,6 @@ class RubiksCubeBingo {
         }
     }
 
-    markSquare(squareGroup) {
-        if (!exactEndPosition) {
-            console.error('❌ Invalid face index:', faceIndex);
-            onComplete();
-            return;
-        }
-        
-        const faceNames = ['Front(Red)', 'Back(Green)', 'Right(Blue)', 'Left(Orange)', 'Top(Yellow)', 'Bottom(White)'];
-        console.log(`🎯 TARGET: ${faceNames[faceIndex]} (Face ${faceIndex})`);
-        console.log(`� EXACT END POSITION: X=${(exactEndPosition.x * 180/Math.PI).toFixed(1)}°, Y=${(exactEndPosition.y * 180/Math.PI).toFixed(1)}°, Z=${exactEndPosition.z}°`);
-        
-        // Step 2: Record current position 
-        const startPosition = {
-            x: this.cube.rotation.x,
-            y: this.cube.rotation.y,
-            z: this.cube.rotation.z
-        };
-        console.log(`🏁 START POSITION: X=${(startPosition.x * 180/Math.PI).toFixed(1)}°, Y=${(startPosition.y * 180/Math.PI).toFixed(1)}°, Z=${startPosition.z.toFixed(1)}°`);
-        
-        // Step 3: Calculate the DIRECT path to end position (with visual spins)
-        // Add visual rotations but ensure we end up EXACTLY at target
-        const visualSpins = 1.5; // Reduced for accuracy
-        const animationEndX = exactEndPosition.x + (visualSpins * 2 * Math.PI);
-        const animationEndY = exactEndPosition.y + (visualSpins * 2 * Math.PI);
-        const animationEndZ = exactEndPosition.z;
-        
-        console.log(`🎬 ANIMATION TARGET: X=${(animationEndX * 180/Math.PI).toFixed(1)}°, Y=${(animationEndY * 180/Math.PI).toFixed(1)}°`);
-        
-        // Step 4: Stop any conflicting animations
-        if (this.rotationAnimationId) {
-            cancelAnimationFrame(this.rotationAnimationId);
-            this.rotationAnimationId = null;
-        }
-        
-        // Step 5: Animate DIRECTLY to calculated end position
-        const startTime = Date.now();
-        const duration = 2500; // Slightly faster
-        
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            if (progress < 1) {
-                // Smooth easing - directly interpolate to target
-                const ease = progress * progress * (3 - 2 * progress);
-                
-                // Direct interpolation from start to calculated end
-                this.cube.rotation.x = startPosition.x + (animationEndX - startPosition.x) * ease;
-                this.cube.rotation.y = startPosition.y + (animationEndY - startPosition.y) * ease;
-                this.cube.rotation.z = startPosition.z + (animationEndZ - startPosition.z) * ease;
-                
-                this.rotationAnimationId = requestAnimationFrame(animate);
-            } else {
-                // Step 6: SNAP to exact final position (no corrections needed)
-                this.cube.rotation.x = exactEndPosition.x;
-                this.cube.rotation.y = exactEndPosition.y;
-                this.cube.rotation.z = exactEndPosition.z;
-                
-                console.log(`✅ LANDED PERFECTLY: X=${(this.cube.rotation.x * 180/Math.PI).toFixed(1)}°, Y=${(this.cube.rotation.y * 180/Math.PI).toFixed(1)}°, Z=${this.cube.rotation.z}°`);
-                console.log(`🎯 ${faceNames[faceIndex]} showing correctly - NO CORRECTIONS NEEDED`);
-                
-                this.rotationAnimationId = null;
-                onComplete();
-            }
-        };
-        
-        this.rotationAnimationId = requestAnimationFrame(animate);
-    }
-    
-    highlightCalledNumber(calledItem) {
-        // Disabled duplicate - already handled above
-        return;
-    }
-    
     onMouseClick(event) {
         // Calculate mouse position
         const rect = this.renderer.domElement.getBoundingClientRect();

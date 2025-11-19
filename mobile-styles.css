@@ -26,13 +26,16 @@ body {
 }
 
 .mobile-logo {
-    max-width: 100%;
-    max-height: 120px;
+    max-width: 90%;
+    width: auto;
     height: auto;
+    max-height: 120px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease;
     margin-bottom: 10px;
+    object-fit: contain;
+    display: block;
 }
 
 .mobile-logo:hover {
@@ -395,12 +398,8 @@ body {
     }
     
     .mobile-logo {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .mobile-title {
-        font-size: 20px;
+        max-width: 85%;
+        max-height: 100px;
     }
     
     #cube-container {
@@ -426,6 +425,13 @@ body {
         flex-direction: column;
         gap: 10px;
         text-align: center;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .mobile-logo {
+        max-width: 80%;
+        max-height: 140px;
     }
 }
 

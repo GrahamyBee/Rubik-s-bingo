@@ -42,6 +42,24 @@ body {
     transform: scale(1.05);
 }
 
+/* Portrait mode specific styling */
+@media (orientation: portrait) {
+    .mobile-logo {
+        max-width: 70%;
+        max-height: 100px;
+        object-fit: contain;
+    }
+}
+
+/* Landscape mode specific styling */
+@media (orientation: landscape) {
+    .mobile-logo {
+        max-width: 50%;
+        max-height: 80px;
+        object-fit: contain;
+    }
+}
+
 .mobile-title {
     font-size: 24px;
     font-weight: bold;
@@ -83,7 +101,7 @@ body {
 }
 
 #current-ball-position {
-    min-height: 60px;
+    min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -92,6 +110,39 @@ body {
     font-size: 18px;
     font-weight: bold;
     padding: 15px;
+}
+
+/* Current ball styling when active */
+#current-ball-position .bingo-ball {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    border: 3px solid #333;
+    box-shadow: 
+        inset -5px -5px 10px rgba(0, 0, 0, 0.3),
+        inset 5px 5px 10px rgba(255, 255, 255, 0.3),
+        0 5px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.5s ease;
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+    position: relative;
+}
+
+#current-ball-position .bingo-ball::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 25%;
+    width: 30%;
+    height: 30%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent 50%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .previous-calls {
@@ -107,9 +158,9 @@ body {
 #previous-balls-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 5px;
     justify-content: center;
-    max-height: 120px;
+    max-height: 150px;
     overflow-y: auto;
     padding: 10px;
     background: rgba(0, 0, 0, 0.1);
@@ -117,17 +168,37 @@ body {
 }
 
 .called-ball {
-    width: 35px;
-    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
     font-weight: bold;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    color: #000;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    border: 2px solid #333;
+    box-shadow: 
+        inset -3px -3px 6px rgba(0, 0, 0, 0.3),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3),
+        0 3px 10px rgba(0, 0, 0, 0.4);
+    transition: all 0.5s ease;
     flex-shrink: 0;
+    position: relative;
+    width: 45px;
+    height: 45px;
+    font-size: 14px;
+    margin: 2px;
+}
+
+.called-ball::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 25%;
+    width: 30%;
+    height: 30%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent 50%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 /* Controls Section */
@@ -426,12 +497,38 @@ body {
         gap: 10px;
         text-align: center;
     }
+    
+    /* Smaller bingo balls on very small screens */
+    .called-ball {
+        width: 40px;
+        height: 40px;
+        font-size: 12px;
+    }
+    
+    #current-ball-position .bingo-ball {
+        width: 70px;
+        height: 70px;
+        font-size: 1.3rem;
+    }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
     .mobile-logo {
         max-width: 80%;
         max-height: 140px;
+    }
+    
+    /* Slightly larger balls on medium screens */
+    .called-ball {
+        width: 50px;
+        height: 50px;
+        font-size: 15px;
+    }
+    
+    #current-ball-position .bingo-ball {
+        width: 90px;
+        height: 90px;
+        font-size: 1.6rem;
     }
 }
 

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rubix Bingo - Mobile</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <!-- Logo Section -->
+    <header class="mobile-header">
+        <img src="logo.jpg" alt="Rubix Bingo Logo" class="mobile-logo">
+        <h1 class="mobile-title">Rubix Bingo</h1>
+    </header>
+
+    <!-- Rubix Cube Section -->
+    <section class="cube-section">
+        <div id="cube-container"></div>
+    </section>
+
+    <!-- Caller Section -->
+    <section class="caller-section">
+        <div class="current-call">
+            <div id="current-ball-position"></div>
+        </div>
+        <div class="previous-calls">
+            <div class="previous-calls-header">Previous Calls:</div>
+            <div id="previous-balls-container"></div>
+        </div>
+    </section>
+
+    <!-- Main Controls Section -->
+    <section class="controls-section">
+        <div class="control-row">
+            <button id="call-number-btn" class="main-btn">Game Start</button>
+            <button id="reset-game-btn" class="main-btn">Reset Game</button>
+        </div>
+        <div class="control-row">
+            <div class="input-group">
+                <label for="ai-players-input">AI Players:</label>
+                <input type="number" id="ai-players-input" min="1" max="10" value="5" class="mobile-input">
+            </div>
+            <div class="input-group">
+                <label for="price-per-player">Price (£):</label>
+                <input type="number" id="price-per-player" min="1" max="50" value="10" step="1" class="mobile-input">
+            </div>
+        </div>
+    </section>
+
+    <!-- Call Count and Mode Section -->
+    <section class="status-section">
+        <div class="status-row">
+            <div class="call-counter">
+                <span>Calls Made: </span>
+                <span id="call-count">0</span>
+            </div>
+            <button id="play-mode-btn" class="mode-btn auto">Auto</button>
+        </div>
+    </section>
+
+    <!-- Prize Containers Section -->
+    <section class="prizes-section">
+        <h2 class="prizes-title">Side Prizes</h2>
+        
+        <!-- One Side Prize -->
+        <div class="prize-box mobile-prize" data-sides="1">
+            <div class="prize-header">One Side Prize</div>
+            <div class="prize-amount" id="one-side-amount">£2.50</div>
+            <div class="prize-countdown" id="one-side-countdown">0</div>
+            <div class="winner-dropdown">
+                <div class="winner-text"></div>
+            </div>
+        </div>
+
+        <!-- Two Side Prize -->
+        <div class="prize-box mobile-prize" data-sides="2">
+            <div class="prize-header">Two Side Prize</div>
+            <div class="prize-amount" id="two-side-amount">£5.00</div>
+            <div class="prize-countdown" id="two-side-countdown">0</div>
+            <div class="winner-dropdown">
+                <div class="winner-text"></div>
+            </div>
+        </div>
+
+        <!-- Three Side Prize -->
+        <div class="prize-box mobile-prize" data-sides="3">
+            <div class="prize-header">Three Side Prize</div>
+            <div class="prize-amount" id="three-side-amount">£7.50</div>
+            <div class="prize-countdown" id="three-side-countdown">0</div>
+            <div class="winner-dropdown">
+                <div class="winner-text"></div>
+            </div>
+        </div>
+
+        <!-- Four Side Prize -->
+        <div class="prize-box mobile-prize" data-sides="4">
+            <div class="prize-header">Four Side Prize</div>
+            <div class="prize-amount" id="four-side-amount">£10.00</div>
+            <div class="prize-countdown" id="four-side-countdown">0</div>
+            <div class="winner-dropdown">
+                <div class="winner-text"></div>
+            </div>
+        </div>
+
+        <!-- Five Side Prize -->
+        <div class="prize-box mobile-prize" data-sides="5">
+            <div class="prize-header">Five Side Prize</div>
+            <div class="prize-amount" id="five-side-amount">£25.00</div>
+            <div class="prize-countdown" id="five-side-countdown">0</div>
+            <div class="winner-dropdown">
+                <div class="winner-text"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals (unchanged from desktop) -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="win-message"></h2>
+            <p id="win-details"></p>
+            <div class="winner-info">
+                <p><strong>Winner:</strong> <span id="winner-name"></span></p>
+                <p><strong>Prize:</strong> <span id="winner-prize"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-win-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="ai-win-message"></h2>
+            <p id="ai-win-details"></p>
+            <div class="winner-info">
+                <p><strong>Winner:</strong> <span id="ai-winner-name"></span></p>
+                <p><strong>Prize:</strong> <span id="ai-winner-prize"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="mobile-main.js"></script>
+</body>
+</html>

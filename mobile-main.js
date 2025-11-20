@@ -202,50 +202,6 @@ class RubiksCubeBingo {
         
         // Regenerate textures with new font size for mobile responsiveness
         this.generateTextures();
-        
-        // Update cube materials with new textures
-        this.updateCubeMaterials();
-    }
-    
-    updateCubeMaterials() {
-        // Update text materials for all squares
-        this.cube.children.forEach(child => {
-            if (child.userData && child.userData.squares) {
-                child.children.forEach(squareGroup => {
-                    if (squareGroup.userData && squareGroup.userData.textMesh) {
-                        const textMesh = squareGroup.userData.textMesh;
-                        const squareData = squareGroup.userData.squareData;
-                        
-                        // Create new canvas with updated font size
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 256;
-                        canvas.height = 256;
-                        const context = canvas.getContext('2d');
-                        
-                        // Mobile-responsive font size
-                        const container = document.getElementById('cube-container');
-                        const containerWidth = container ? container.clientWidth : 350;
-                        const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
-                        
-                        context.clearRect(0, 0, 256, 256);
-                        context.fillStyle = '#ffffff';
-                        context.strokeStyle = '#000000';
-                        context.font = `bold ${fontSize}px Arial`;
-                        context.textAlign = 'center';
-                        context.textBaseline = 'middle';
-                        context.lineWidth = Math.max(4, fontSize * 0.05);
-                        
-                        context.strokeText(squareData.number.toString(), 128, 128);
-                        context.fillText(squareData.number.toString(), 128, 128);
-                        
-                        // Update existing texture
-                        const texture = new THREE.CanvasTexture(canvas);
-                        textMesh.material.map = texture;
-                        textMesh.material.needsUpdate = true;
-                    }
-                });
-            }
-        });
     }
 
     createRubiksCube() {
@@ -412,6 +368,48 @@ class RubiksCubeBingo {
         });
     }
     
+    generateTextures() {
+        // Regenerate all text textures for cube numbers with responsive font size
+        this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
+            faceGroup.children.forEach((squareGroup, index) => {
+                const number = squareGroup.userData.number;
+                
+                // Only regenerate if textMesh exists
+                if (squareGroup.userData.textMesh) {
+                    // Create new canvas with responsive font size
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    
+                    // Make background transparent
+                    context.clearRect(0, 0, 256, 256);
+                    
+                    // Mobile-responsive font size based on container
+                    const container = document.getElementById('cube-container');
+                    const containerWidth = container ? container.clientWidth : 350;
+                    const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
+                    
+                    // Add white text with black outline for visibility
+                    context.fillStyle = '#ffffff';
+                    context.strokeStyle = '#000000';
+                    context.font = `bold ${fontSize}px Arial`;
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.lineWidth = Math.max(4, fontSize * 0.05);
+                    
+                    context.strokeText(number.toString(), 128, 128);
+                    context.fillText(number.toString(), 128, 128);
+                    
+                    // Update the existing texture
+                    const texture = new THREE.CanvasTexture(canvas);
+                    squareGroup.userData.textMesh.material.map = texture;
+                    squareGroup.userData.textMesh.material.needsUpdate = true;
+                }
+            });
+        });
+    }
+
     initializeAvailableNumbers() {
         this.availableNumbers = [];
         // Universe of 54 combinations (1-9 for each of 6 colors)

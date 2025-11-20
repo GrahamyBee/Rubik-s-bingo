@@ -324,6 +324,12 @@ body {
     min-width: 80px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    /* Ensure button is touchable on mobile */
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    z-index: 10;
 }
 
 .mode-btn.auto {

@@ -1359,6 +1359,7 @@ class RubiksCubeBingo {
     }
     
     startAutoPlay() {
+        console.log('🤖 StartAutoPlay called');
         if (this.autoPlayInterval) {
             clearInterval(this.autoPlayInterval);
         }
@@ -1366,9 +1367,11 @@ class RubiksCubeBingo {
         // Don't start auto-play until game has been manually started
         if (!this.gameStarted) {
             console.log('🚫 Auto-play blocked - game must be manually started first');
+            console.log('💡 Click "Game Start" first, then toggle to Auto mode');
             return;
         }
         
+        console.log('✅ Auto-play starting!');
         // Start the first call immediately
         this.autoPlayNext();
     }
@@ -1394,6 +1397,7 @@ class RubiksCubeBingo {
         
         // Auto-mark the called number after a brief delay
         setTimeout(() => {
+            console.log('⏰ Auto-mark timeout triggered');
             this.autoMarkCalledNumber();
         }, 500);
         
@@ -1416,7 +1420,13 @@ class RubiksCubeBingo {
     }
     
     autoMarkCalledNumber() {
-        if (!this.currentCall) return;
+        console.log('🎯 AutoMarkCalledNumber called!');
+        if (!this.currentCall) {
+            console.log('❌ No current call to auto-mark');
+            return;
+        }
+        
+        console.log(`🎯 Looking for ${this.currentCall.color}${this.currentCall.number} to auto-mark`);
         
         // Find the matching square first to know which face to show
         let targetFaceIndex = -1;

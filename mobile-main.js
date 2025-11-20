@@ -1197,12 +1197,17 @@ class RubiksCubeBingo {
             // INSTANT visual reset to starting position
             this.forceVisualReset();
             
-            // Only start auto-play if game has been started
-            if (this.gameStarted) {
-                console.log('🚀 Starting auto-play from clean position');
+            // Auto-start: If game hasn't started, start it automatically in auto mode
+            if (!this.gameStarted) {
+                console.log('🚀 Auto-starting game since it hasn\'t been started yet');
+                this.gameStarted = true;
+                document.getElementById('call-number-btn').textContent = 'Call Next Number';
+                // Start auto-play immediately
+                console.log('🚀 Starting auto-play immediately');
                 this.startAutoPlay();
             } else {
-                console.log('⏳ Auto mode ready - click "Game Start" to begin auto-play');
+                console.log('🚀 Starting auto-play from clean position');
+                this.startAutoPlay();
             }
             
         } else {
@@ -1367,12 +1372,8 @@ class RubiksCubeBingo {
         if (this.autoPlayInterval) {
             clearInterval(this.autoPlayInterval);
         }
-        
-        // Don't start auto-play until game has been manually started
-        if (!this.gameStarted) {
-            console.log('🚫 Auto-play blocked - game must be manually started first');
-            console.log('💡 Click "Game Start" first, then toggle to Auto mode');
-            return;
+        if (this.autoPlayTimeout) {
+            clearTimeout(this.autoPlayTimeout);
         }
         
         console.log('✅ Auto-play starting!');
@@ -1421,6 +1422,7 @@ class RubiksCubeBingo {
     }
     
     stopAutoPlay() {
+        console.log('🛑 StopAutoPlay called');
         if (this.autoPlayInterval) {
             clearInterval(this.autoPlayInterval);
             this.autoPlayInterval = null;

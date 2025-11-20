@@ -575,7 +575,9 @@ class RubiksCubeBingo {
     }
     
     callNextNumber() {
+        console.log('📞 CallNextNumber function called');
         if (this.availableNumbers.length === 0) {
+            console.log('❌ No numbers available to call');
             alert('All numbers have been called!');
             return;
         }
@@ -585,6 +587,8 @@ class RubiksCubeBingo {
         this.calledNumbers.add(calledKey);
         this.currentCall = calledItem;
         this.callCount++;
+        
+        console.log(`📞 Called number: ${calledItem.color}${calledItem.number} (Call #${this.callCount})`);
         
         // Update button text after first call
         if (this.callCount === 1) {
@@ -1377,7 +1381,11 @@ class RubiksCubeBingo {
     }
     
     autoPlayNext() {
+        console.log('🎮 AutoPlayNext called');
+        console.log(`🔍 isAutoMode: ${this.isAutoMode}, availableNumbers: ${this.availableNumbers.length}, gamePaused: ${this.gamePaused}`);
+        
         if (!this.isAutoMode || this.availableNumbers.length === 0) {
+            console.log('🛑 Stopping auto-play - mode disabled or no numbers left');
             this.stopAutoPlay();
             return;
         }
@@ -1392,18 +1400,22 @@ class RubiksCubeBingo {
             return;
         }
         
+        console.log('📞 About to call next number');
         // Call the next number
         this.callNextNumber();
         
+        console.log('⏰ Setting up auto-mark timeout');
         // Auto-mark the called number after a brief delay
         setTimeout(() => {
             console.log('⏰ Auto-mark timeout triggered');
             this.autoMarkCalledNumber();
         }, 500);
         
+        console.log('⏰ Setting up next call timeout');
         // Schedule the next call after the complete sequence
         // 500ms (call delay) + 1000ms (rotation) + immediate marking + 2000ms (result viewing) = 3500ms
         this.autoPlayTimeout = setTimeout(() => {
+            console.log('⏰ Next call timeout triggered');
             this.autoPlayNext();
         }, 3500);
     }

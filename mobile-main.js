@@ -93,7 +93,6 @@ class RubiksCubeBingo {
         
         this.init();
         this.setupEventListeners();
-        this.generateBingoTickets();
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
@@ -302,6 +301,43 @@ class RubiksCubeBingo {
                         colorNumberKey: `${squareData.color}${squareData.number}` // For easy matching
                     };
                     
+                    // Add number text immediately during cube creation
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    
+                    // Make background transparent
+                    context.clearRect(0, 0, 256, 256);
+                    
+                    // Mobile-responsive font size based on container
+                    const container = document.getElementById('cube-container');
+                    const containerWidth = container ? container.clientWidth : 350;
+                    const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
+                    
+                    // Add white text with black outline for visibility
+                    context.fillStyle = '#ffffff';
+                    context.strokeStyle = '#000000';
+                    context.font = `bold ${fontSize}px Arial`;
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.lineWidth = Math.max(4, fontSize * 0.05);
+                    
+                    context.strokeText(squareData.number.toString(), 128, 128);
+                    context.fillText(squareData.number.toString(), 128, 128);
+                    
+                    const texture = new THREE.CanvasTexture(canvas);
+                    const textMaterial = new THREE.MeshBasicMaterial({ 
+                        map: texture, 
+                        transparent: true 
+                    });
+                    const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
+                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                    textMesh.position.z = 0.02;
+                    
+                    squareGroup.add(textMesh);
+                    squareGroup.userData.textMesh = textMesh;
+                    
 
                     
                     faceGroup.add(squareGroup);
@@ -318,56 +354,7 @@ class RubiksCubeBingo {
             squareIndex += 9;
         });
     }
-    
-    generateBingoTickets() {
-        // For Rubik's cube, each square has a number and color
-        this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
-            // Update face group with numbers and create text
-            faceGroup.children.forEach((squareGroup, index) => {
-                const number = squareGroup.userData.number;
-                
-                // Create text for the number
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 256;
-                
-                // Make background transparent
-                context.clearRect(0, 0, 256, 256);
-                
-                // Mobile-responsive font size based on container
-                const container = document.getElementById('cube-container');
-                const containerWidth = container ? container.clientWidth : 350;
-                const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
-                
-                // Add white text with black outline for visibility
-                context.fillStyle = '#ffffff';
-                context.strokeStyle = '#000000';
-                context.font = `bold ${fontSize}px Arial`;
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
-                context.lineWidth = Math.max(4, fontSize * 0.05);
-                
-                context.strokeText(number.toString(), 128, 128);
-                context.fillText(number.toString(), 128, 128);
-                
-                const texture = new THREE.CanvasTexture(canvas);
-                const textMaterial = new THREE.MeshBasicMaterial({ 
-                    map: texture, 
-                    transparent: true 
-                });
-                const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
-                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                textMesh.position.z = 0.02;
-                
-                squareGroup.add(textMesh);
-                squareGroup.userData.textMesh = textMesh;
-            });
-            
-            this.faceTickets[faceIndex] = faceGroup.userData.squares;
-        });
-    }
-    
+
     generateTextures() {
         // Regenerate all text textures for cube numbers with responsive font size
         this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
@@ -631,7 +618,7 @@ class RubiksCubeBingo {
         
         previousBalls.forEach((ballData, index) => {
             const ball = document.createElement('div');
-            ball.className = 'bingo-ball previous';
+            ball.className = 'called-ball';
             
             // Set ball color
             const colorHex = this.getColorHex(ballData.colorHex);
@@ -1892,7 +1879,6 @@ class RubiksCubeBingo {
         // Reset cube - remove and recreate
         this.scene.remove(this.cube);
         this.createRubiksCube();
-        this.generateBingoTickets();
         this.initializeAvailableNumbers();
         
         // Regenerate AI players

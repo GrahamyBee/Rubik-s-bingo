@@ -1183,10 +1183,8 @@ class RubiksCubeBingo {
     }
     
     togglePlayMode() {
-        console.log('🔄 Toggle Play Mode clicked!'); // Debug log
         this.isAutoMode = !this.isAutoMode;
         const button = document.getElementById('play-mode-btn');
-        console.log(`Auto mode is now: ${this.isAutoMode}`); // Debug log
         
         if (this.isAutoMode) {
             button.textContent = 'Manual';
@@ -1197,17 +1195,12 @@ class RubiksCubeBingo {
             // INSTANT visual reset to starting position
             this.forceVisualReset();
             
-            // Auto-start: If game hasn't started, start it automatically in auto mode
-            if (!this.gameStarted) {
-                console.log('🚀 Auto-starting game since it hasn\'t been started yet');
-                this.gameStarted = true;
-                document.getElementById('call-number-btn').textContent = 'Call Next Number';
-                // Start auto-play immediately
-                console.log('🚀 Starting auto-play immediately');
-                this.startAutoPlay();
-            } else {
+            // Only start auto-play if game has been started
+            if (this.gameStarted) {
                 console.log('🚀 Starting auto-play from clean position');
                 this.startAutoPlay();
+            } else {
+                console.log('⏳ Auto mode ready - click "Game Start" to begin auto-play');
             }
             
         } else {
@@ -1368,25 +1361,22 @@ class RubiksCubeBingo {
     }
     
     startAutoPlay() {
-        console.log('🤖 StartAutoPlay called');
         if (this.autoPlayInterval) {
             clearInterval(this.autoPlayInterval);
         }
-        if (this.autoPlayTimeout) {
-            clearTimeout(this.autoPlayTimeout);
+        
+        // Don't start auto-play until game has been manually started
+        if (!this.gameStarted) {
+            console.log('🚫 Auto-play blocked - game must be manually started first');
+            return;
         }
         
-        console.log('✅ Auto-play starting!');
         // Start the first call immediately
         this.autoPlayNext();
     }
     
     autoPlayNext() {
-        console.log('🎮 AutoPlayNext called');
-        console.log(`🔍 isAutoMode: ${this.isAutoMode}, availableNumbers: ${this.availableNumbers.length}, gamePaused: ${this.gamePaused}`);
-        
         if (!this.isAutoMode || this.availableNumbers.length === 0) {
-            console.log('🛑 Stopping auto-play - mode disabled or no numbers left');
             this.stopAutoPlay();
             return;
         }
@@ -1401,28 +1391,22 @@ class RubiksCubeBingo {
             return;
         }
         
-        console.log('📞 About to call next number');
         // Call the next number
         this.callNextNumber();
         
-        console.log('⏰ Setting up auto-mark timeout');
         // Auto-mark the called number after a brief delay
         setTimeout(() => {
-            console.log('⏰ Auto-mark timeout triggered');
             this.autoMarkCalledNumber();
         }, 500);
         
-        console.log('⏰ Setting up next call timeout');
         // Schedule the next call after the complete sequence
         // 500ms (call delay) + 1000ms (rotation) + immediate marking + 2000ms (result viewing) = 3500ms
         this.autoPlayTimeout = setTimeout(() => {
-            console.log('⏰ Next call timeout triggered');
             this.autoPlayNext();
         }, 3500);
     }
     
     stopAutoPlay() {
-        console.log('🛑 StopAutoPlay called');
         if (this.autoPlayInterval) {
             clearInterval(this.autoPlayInterval);
             this.autoPlayInterval = null;
@@ -1434,24 +1418,7 @@ class RubiksCubeBingo {
     }
     
     autoMarkCalledNumber() {
-        console.log('🎯 AutoMarkCalledNumber called!');
-        
-        // Debug: Check faceTickets structure
-        console.log('FaceTickets array:', this.faceTickets);
-        this.faceTickets.forEach((face, index) => {
-            if (face) {
-                console.log(`Face ${index}:`, face.map(sq => sq ? `${sq.color}${sq.number}` : 'null'));
-            } else {
-                console.log(`Face ${index}: undefined/null`);
-            }
-        });
-        
-        if (!this.currentCall) {
-            console.log('❌ No current call to auto-mark');
-            return;
-        }
-        
-        console.log(`🎯 Looking for ${this.currentCall.color}${this.currentCall.number} to auto-mark`);
+        if (!this.currentCall) return;
         
         // Find the matching square first to know which face to show
         let targetFaceIndex = -1;
@@ -1726,13 +1693,8 @@ class RubiksCubeBingo {
     }
     
     markSquare(squareGroup) {
-        console.log('markSquare called with:', squareGroup);
-        if (squareGroup.userData.marked) {
-            console.log('Square already marked, returning');
-            return;
-        }
+        if (squareGroup.userData.marked) return;
         
-        console.log('Marking square...');
         squareGroup.userData.marked = true;
         
         // Add X mark for marked squares

@@ -1145,8 +1145,10 @@ class RubiksCubeBingo {
     }
     
     togglePlayMode() {
+        console.log('🔄 Toggle Play Mode clicked!'); // Debug log
         this.isAutoMode = !this.isAutoMode;
         const button = document.getElementById('play-mode-btn');
+        console.log(`Auto mode is now: ${this.isAutoMode}`); // Debug log
         
         if (this.isAutoMode) {
             button.textContent = 'Manual';

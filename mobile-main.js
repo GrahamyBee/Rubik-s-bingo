@@ -184,6 +184,15 @@ class RubiksCubeBingo {
         
         // Start render loop
         this.animate();
+        
+        // Ensure cube numbers are visible after container is fully ready (mobile fix)
+        setTimeout(() => {
+            const container = document.getElementById('cube-container');
+            if (container && container.clientWidth > 0) {
+                console.log('🔧 Re-generating textures after container ready');
+                this.generateTextures();
+            }
+        }, 500);
     }
     
     handleResize() {
@@ -313,9 +322,11 @@ class RubiksCubeBingo {
                     // Mobile-responsive font size based on container
                     const container = document.getElementById('cube-container');
                     const containerWidth = container ? container.clientWidth : 350;
-                    const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
+                    // If container width is 0 (not ready), use a good default
+                    const effectiveWidth = containerWidth > 0 ? containerWidth : 350;
+                    const fontSize = Math.min(120, Math.max(60, effectiveWidth * 0.25));
                     
-                    console.log(`🔤 Creating cube text: number=${squareData.number}, fontSize=${fontSize}px, containerWidth=${containerWidth}px`);
+                    console.log(`🔤 Creating cube text: number=${squareData.number}, fontSize=${fontSize}px, containerWidth=${containerWidth}px, effectiveWidth=${effectiveWidth}px`);
                     
                     // Add white text with black outline for visibility
                     context.fillStyle = '#ffffff';
@@ -379,7 +390,9 @@ class RubiksCubeBingo {
                     // Mobile-responsive font size based on container
                     const container = document.getElementById('cube-container');
                     const containerWidth = container ? container.clientWidth : 350;
-                    const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
+                    // If container width is 0 (not ready), use a good default
+                    const effectiveWidth = containerWidth > 0 ? containerWidth : 350;
+                    const fontSize = Math.min(120, Math.max(60, effectiveWidth * 0.25));
                     
                     // Add white text with black outline for visibility
                     context.fillStyle = '#ffffff';
@@ -1920,5 +1933,19 @@ class RubiksCubeBingo {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new RubiksCubeBingo();
+    // Add a small delay to ensure CSS is fully loaded and container has dimensions
+    setTimeout(() => {
+        const container = document.getElementById('cube-container');
+        if (container && container.clientWidth > 0) {
+            console.log('🚀 Initializing with container ready:', container.clientWidth);
+            new RubiksCubeBingo();
+        } else {
+            console.log('⏳ Container not ready, retrying...');
+            // Retry after another delay
+            setTimeout(() => {
+                console.log('🔄 Retrying initialization...');
+                new RubiksCubeBingo();
+            }, 500);
+        }
+    }, 100);
 });

@@ -186,13 +186,25 @@ class RubiksCubeBingo {
         this.animate();
         
         // Ensure cube numbers are visible after container is fully ready (mobile fix)
+        // Try multiple times to ensure it works
         setTimeout(() => {
             const container = document.getElementById('cube-container');
+            console.log('🔧 First texture regeneration attempt');
             if (container && container.clientWidth > 0) {
-                console.log('🔧 Re-generating textures after container ready');
+                console.log('🔧 Re-generating textures after container ready (500ms)');
                 this.generateTextures();
             }
         }, 500);
+        
+        setTimeout(() => {
+            console.log('🔧 Second texture regeneration attempt');
+            this.generateTextures();
+        }, 1000);
+        
+        setTimeout(() => {
+            console.log('🔧 Third texture regeneration attempt');
+            this.generateTextures();
+        }, 2000);
     }
     
     handleResize() {
@@ -319,14 +331,10 @@ class RubiksCubeBingo {
                     // Make background transparent
                     context.clearRect(0, 0, 256, 256);
                     
-                    // Mobile-responsive font size based on container
-                    const container = document.getElementById('cube-container');
-                    const containerWidth = container ? container.clientWidth : 350;
-                    // If container width is 0 (not ready), use a good default
-                    const effectiveWidth = containerWidth > 0 ? containerWidth : 350;
-                    const fontSize = Math.min(120, Math.max(60, effectiveWidth * 0.25));
+                    // Use fixed font size for initial creation to ensure visibility
+                    const fontSize = 100; // Fixed size that should always be visible
                     
-                    console.log(`🔤 Creating cube text: number=${squareData.number}, fontSize=${fontSize}px, containerWidth=${containerWidth}px, effectiveWidth=${effectiveWidth}px`);
+                    console.log(`🔤 Creating cube text (FIXED SIZE): number=${squareData.number}, fontSize=${fontSize}px`);
                     
                     // Add white text with black outline for visibility
                     context.fillStyle = '#ffffff';
@@ -334,21 +342,27 @@ class RubiksCubeBingo {
                     context.font = `bold ${fontSize}px Arial`;
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
-                    context.lineWidth = Math.max(4, fontSize * 0.05);
+                    context.lineWidth = 8; // Thick outline for visibility
                     
+                    // Draw text with extra thick outline for mobile visibility
                     context.strokeText(squareData.number.toString(), 128, 128);
                     context.fillText(squareData.number.toString(), 128, 128);
                     
                     console.log(`✅ Text created for ${squareData.number} on ${squareData.color} square`);
                     
                     const texture = new THREE.CanvasTexture(canvas);
+                    texture.needsUpdate = true; // Force texture update
                     const textMaterial = new THREE.MeshBasicMaterial({ 
                         map: texture, 
-                        transparent: true 
+                        transparent: true,
+                        alphaTest: 0.1 // Ensure it renders properly
                     });
                     const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
                     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
                     textMesh.position.z = 0.02;
+                    
+                    // Force visibility
+                    textMesh.visible = true;
                     
                     squareGroup.add(textMesh);
                     squareGroup.userData.textMesh = textMesh;
@@ -364,6 +378,9 @@ class RubiksCubeBingo {
             faceGroup.rotation.set(...face.rot);
             
             this.cube.add(faceGroup);
+            
+            // Store face tickets data  
+            this.faceTickets[faceIndex] = faceGroup.userData.squares;
             
             // Move to next set of 9 squares
             squareIndex += 9;

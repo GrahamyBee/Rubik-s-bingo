@@ -93,6 +93,7 @@ class RubiksCubeBingo {
         
         this.init();
         this.setupEventListeners();
+        this.generateBingoTickets();
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
@@ -125,48 +126,29 @@ class RubiksCubeBingo {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x222222);
         
-        // Get container dimensions for responsive design
-        const container = document.getElementById('cube-container');
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        
         // Camera setup - positioned to show cube straight on (front face)
-        this.camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, 600 / 600, 0.1, 1000);
         this.camera.position.set(0, 0, 6);
         this.camera.lookAt(0, 0, 0);
         
-        // Renderer setup - responsive sizing
+        // Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(containerWidth, containerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimize for mobile
+        this.renderer.setSize(600, 600);
         
+        const container = document.getElementById('cube-container');
         container.appendChild(this.renderer.domElement);
         
-        // Controls - optimized for mobile touch
+        // Controls - rotation only, no zoom or pan
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.1; // Slightly more damping for mobile
+        this.controls.dampingFactor = 0.05;
         this.controls.enableZoom = false;
         this.controls.enablePan = false;
-        this.controls.rotateSpeed = 1.2; // Slightly faster rotation for touch
         this.controls.mouseButtons = {
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: null,
             RIGHT: null
         };
-        
-        // Mobile-specific touch settings
-        this.controls.touches = {
-            ONE: THREE.TOUCH.ROTATE,
-            TWO: null // Disable two-finger gestures
-        };
-        
-        // Handle window resize for mobile orientation changes
-        window.addEventListener('resize', () => this.handleResize(), false);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => this.handleResize(), 100);
-        }, false);
-        
         // Disable scroll wheel zoom completely
         this.controls.addEventListener('change', () => {
             this.camera.position.normalize().multiplyScalar(6); // Lock distance for straight-on view
@@ -184,46 +166,8 @@ class RubiksCubeBingo {
         
         // Start render loop
         this.animate();
-        
-        // Ensure cube numbers are visible after container is fully ready (mobile fix)
-        // Try multiple times to ensure it works
-        setTimeout(() => {
-            const container = document.getElementById('cube-container');
-            console.log('🔧 First texture regeneration attempt');
-            if (container && container.clientWidth > 0) {
-                console.log('🔧 Re-generating textures after container ready (500ms)');
-                this.generateTextures();
-            }
-        }, 500);
-        
-        setTimeout(() => {
-            console.log('🔧 Second texture regeneration attempt');
-            this.generateTextures();
-        }, 1000);
-        
-        setTimeout(() => {
-            console.log('🔧 Third texture regeneration attempt');
-            this.generateTextures();
-        }, 2000);
     }
     
-    handleResize() {
-        const container = document.getElementById('cube-container');
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        
-        // Update camera aspect ratio
-        this.camera.aspect = containerWidth / containerHeight;
-        this.camera.updateProjectionMatrix();
-        
-        // Update renderer size
-        this.renderer.setSize(containerWidth, containerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        
-        // Regenerate textures with new font size for mobile responsiveness
-        this.generateTextures();
-    }
-
     createRubiksCube() {
         // Create main cube group
         this.cube = new THREE.Group();
@@ -314,58 +258,13 @@ class RubiksCubeBingo {
                         col, 
                         number: squareData.number,
                         color: squareData.color,
-                        squareData: squareData,
                         colorIndex: squareData.colorIndex,
                         colorHex: squareData.colorHex,
                         marked: false,
                         squareMesh: squareMesh,
+                        squareData: squareData,
                         colorNumberKey: `${squareData.color}${squareData.number}` // For easy matching
                     };
-                    
-                    // Add number text immediately during cube creation
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = 256;
-                    canvas.height = 256;
-                    
-                    // Make background transparent
-                    context.clearRect(0, 0, 256, 256);
-                    
-                    // Use fixed font size for initial creation to ensure visibility
-                    const fontSize = 100; // Fixed size that should always be visible
-                    
-                    console.log(`🔤 Creating cube text (FIXED SIZE): number=${squareData.number}, fontSize=${fontSize}px`);
-                    
-                    // Add white text with black outline for visibility
-                    context.fillStyle = '#ffffff';
-                    context.strokeStyle = '#000000';
-                    context.font = `bold ${fontSize}px Arial`;
-                    context.textAlign = 'center';
-                    context.textBaseline = 'middle';
-                    context.lineWidth = 8; // Thick outline for visibility
-                    
-                    // Draw text with extra thick outline for mobile visibility
-                    context.strokeText(squareData.number.toString(), 128, 128);
-                    context.fillText(squareData.number.toString(), 128, 128);
-                    
-                    console.log(`✅ Text created for ${squareData.number} on ${squareData.color} square`);
-                    
-                    const texture = new THREE.CanvasTexture(canvas);
-                    texture.needsUpdate = true; // Force texture update
-                    const textMaterial = new THREE.MeshBasicMaterial({ 
-                        map: texture, 
-                        transparent: true,
-                        alphaTest: 0.1 // Ensure it renders properly
-                    });
-                    const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
-                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                    textMesh.position.z = 0.02;
-                    
-                    // Force visibility
-                    textMesh.visible = true;
-                    
-                    squareGroup.add(textMesh);
-                    squareGroup.userData.textMesh = textMesh;
                     
 
                     
@@ -379,58 +278,68 @@ class RubiksCubeBingo {
             
             this.cube.add(faceGroup);
             
-            // Store face tickets data  
-            this.faceTickets[faceIndex] = faceGroup.userData.squares;
-            
             // Move to next set of 9 squares
             squareIndex += 9;
         });
     }
-
-    generateTextures() {
-        // Regenerate all text textures for cube numbers with responsive font size
+    
+    generateBingoTickets() {
+        // For Rubik's cube, each square has a number and color
         this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
+            // Update face group with numbers and create text
             faceGroup.children.forEach((squareGroup, index) => {
                 const number = squareGroup.userData.number;
                 
-                // Only regenerate if textMesh exists
-                if (squareGroup.userData.textMesh) {
-                    // Create new canvas with responsive font size
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = 256;
-                    canvas.height = 256;
-                    
-                    // Make background transparent
-                    context.clearRect(0, 0, 256, 256);
-                    
-                    // Mobile-responsive font size based on container
-                    const container = document.getElementById('cube-container');
-                    const containerWidth = container ? container.clientWidth : 350;
-                    // If container width is 0 (not ready), use a good default
-                    const effectiveWidth = containerWidth > 0 ? containerWidth : 350;
-                    const fontSize = Math.min(120, Math.max(60, effectiveWidth * 0.25));
-                    
-                    // Add white text with black outline for visibility
-                    context.fillStyle = '#ffffff';
-                    context.strokeStyle = '#000000';
-                    context.font = `bold ${fontSize}px Arial`;
-                    context.textAlign = 'center';
-                    context.textBaseline = 'middle';
-                    context.lineWidth = Math.max(4, fontSize * 0.05);
-                    
-                    context.strokeText(number.toString(), 128, 128);
-                    context.fillText(number.toString(), 128, 128);
-                    
-                    // Update the existing texture
-                    const texture = new THREE.CanvasTexture(canvas);
-                    squareGroup.userData.textMesh.material.map = texture;
-                    squareGroup.userData.textMesh.material.needsUpdate = true;
+                // Create text for the number
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 256;
+                
+                // Make background transparent
+                context.clearRect(0, 0, 256, 256);
+                
+                // Mobile-responsive font sizing
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const isPortrait = window.innerHeight > window.innerWidth;
+                let fontSize = 120;
+                
+                if (isMobile) {
+                    if (isPortrait) {
+                        fontSize = Math.max(80, Math.min(120, window.innerWidth * 0.15));
+                    } else {
+                        fontSize = Math.max(60, Math.min(100, window.innerHeight * 0.12));
+                    }
                 }
+                
+                // Add white text with black outline for visibility
+                context.fillStyle = '#ffffff';
+                context.strokeStyle = '#000000';
+                context.font = `bold ${fontSize}px Arial`;
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.lineWidth = Math.max(2, fontSize * 0.05);
+                
+                context.strokeText(number.toString(), 128, 128);
+                context.fillText(number.toString(), 128, 128);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const textMaterial = new THREE.MeshBasicMaterial({ 
+                    map: texture, 
+                    transparent: true 
+                });
+                const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
+                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                textMesh.position.z = 0.02;
+                
+                squareGroup.add(textMesh);
+                squareGroup.userData.textMesh = textMesh;
             });
+            
+            this.faceTickets[faceIndex] = faceGroup.userData.squares;
         });
     }
-
+    
     initializeAvailableNumbers() {
         this.availableNumbers = [];
         // Universe of 54 combinations (1-9 for each of 6 colors)
@@ -465,48 +374,9 @@ class RubiksCubeBingo {
             this.resetGame();
         });
         
-        // Mouse click and touch events for marking numbers
+        // Mouse click for marking numbers
         this.renderer.domElement.addEventListener('click', (event) => {
             this.onMouseClick(event);
-        });
-        
-        // Enhanced touch handling for mobile
-        let touchStartTime = 0;
-        let touchStartPos = { x: 0, y: 0 };
-        const maxTouchDuration = 200; // Max duration for tap (ms)
-        const maxTouchMove = 10; // Max pixel movement for tap
-        
-        this.renderer.domElement.addEventListener('touchstart', (event) => {
-            if (event.touches.length === 1) {
-                touchStartTime = Date.now();
-                const touch = event.touches[0];
-                touchStartPos.x = touch.clientX;
-                touchStartPos.y = touch.clientY;
-            }
-        }, { passive: true });
-        
-        this.renderer.domElement.addEventListener('touchend', (event) => {
-            if (event.changedTouches.length === 1) {
-                const touchEndTime = Date.now();
-                const touch = event.changedTouches[0];
-                const touchDuration = touchEndTime - touchStartTime;
-                const touchMoveDistance = Math.sqrt(
-                    Math.pow(touch.clientX - touchStartPos.x, 2) + 
-                    Math.pow(touch.clientY - touchStartPos.y, 2)
-                );
-                
-                // Only treat as tap if it was quick and didn't move much
-                if (touchDuration <= maxTouchDuration && touchMoveDistance <= maxTouchMove) {
-                    event.preventDefault();
-                    const touchEvent = {
-                        clientX: touch.clientX,
-                        clientY: touch.clientY,
-                        preventDefault: () => {},
-                        stopPropagation: () => {}
-                    };
-                    this.onMouseClick(touchEvent);
-                }
-            }
         });
         
         // Disable wheel zoom completely
@@ -575,9 +445,7 @@ class RubiksCubeBingo {
     }
     
     callNextNumber() {
-        console.log('📞 CallNextNumber function called');
         if (this.availableNumbers.length === 0) {
-            console.log('❌ No numbers available to call');
             alert('All numbers have been called!');
             return;
         }
@@ -587,8 +455,6 @@ class RubiksCubeBingo {
         this.calledNumbers.add(calledKey);
         this.currentCall = calledItem;
         this.callCount++;
-        
-        console.log(`📞 Called number: ${calledItem.color}${calledItem.number} (Call #${this.callCount})`);
         
         // Update button text after first call
         if (this.callCount === 1) {
@@ -656,7 +522,7 @@ class RubiksCubeBingo {
         
         previousBalls.forEach((ballData, index) => {
             const ball = document.createElement('div');
-            ball.className = 'called-ball';
+            ball.className = 'bingo-ball previous';
             
             // Set ball color
             const colorHex = this.getColorHex(ballData.colorHex);
@@ -1646,6 +1512,80 @@ class RubiksCubeBingo {
         }
     }
 
+    markSquare(squareGroup) {
+        if (!exactEndPosition) {
+            console.error('❌ Invalid face index:', faceIndex);
+            onComplete();
+            return;
+        }
+        
+        const faceNames = ['Front(Red)', 'Back(Green)', 'Right(Blue)', 'Left(Orange)', 'Top(Yellow)', 'Bottom(White)'];
+        console.log(`🎯 TARGET: ${faceNames[faceIndex]} (Face ${faceIndex})`);
+        console.log(`� EXACT END POSITION: X=${(exactEndPosition.x * 180/Math.PI).toFixed(1)}°, Y=${(exactEndPosition.y * 180/Math.PI).toFixed(1)}°, Z=${exactEndPosition.z}°`);
+        
+        // Step 2: Record current position 
+        const startPosition = {
+            x: this.cube.rotation.x,
+            y: this.cube.rotation.y,
+            z: this.cube.rotation.z
+        };
+        console.log(`🏁 START POSITION: X=${(startPosition.x * 180/Math.PI).toFixed(1)}°, Y=${(startPosition.y * 180/Math.PI).toFixed(1)}°, Z=${startPosition.z.toFixed(1)}°`);
+        
+        // Step 3: Calculate the DIRECT path to end position (with visual spins)
+        // Add visual rotations but ensure we end up EXACTLY at target
+        const visualSpins = 1.5; // Reduced for accuracy
+        const animationEndX = exactEndPosition.x + (visualSpins * 2 * Math.PI);
+        const animationEndY = exactEndPosition.y + (visualSpins * 2 * Math.PI);
+        const animationEndZ = exactEndPosition.z;
+        
+        console.log(`🎬 ANIMATION TARGET: X=${(animationEndX * 180/Math.PI).toFixed(1)}°, Y=${(animationEndY * 180/Math.PI).toFixed(1)}°`);
+        
+        // Step 4: Stop any conflicting animations
+        if (this.rotationAnimationId) {
+            cancelAnimationFrame(this.rotationAnimationId);
+            this.rotationAnimationId = null;
+        }
+        
+        // Step 5: Animate DIRECTLY to calculated end position
+        const startTime = Date.now();
+        const duration = 2500; // Slightly faster
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            if (progress < 1) {
+                // Smooth easing - directly interpolate to target
+                const ease = progress * progress * (3 - 2 * progress);
+                
+                // Direct interpolation from start to calculated end
+                this.cube.rotation.x = startPosition.x + (animationEndX - startPosition.x) * ease;
+                this.cube.rotation.y = startPosition.y + (animationEndY - startPosition.y) * ease;
+                this.cube.rotation.z = startPosition.z + (animationEndZ - startPosition.z) * ease;
+                
+                this.rotationAnimationId = requestAnimationFrame(animate);
+            } else {
+                // Step 6: SNAP to exact final position (no corrections needed)
+                this.cube.rotation.x = exactEndPosition.x;
+                this.cube.rotation.y = exactEndPosition.y;
+                this.cube.rotation.z = exactEndPosition.z;
+                
+                console.log(`✅ LANDED PERFECTLY: X=${(this.cube.rotation.x * 180/Math.PI).toFixed(1)}°, Y=${(this.cube.rotation.y * 180/Math.PI).toFixed(1)}°, Z=${this.cube.rotation.z}°`);
+                console.log(`🎯 ${faceNames[faceIndex]} showing correctly - NO CORRECTIONS NEEDED`);
+                
+                this.rotationAnimationId = null;
+                onComplete();
+            }
+        };
+        
+        this.rotationAnimationId = requestAnimationFrame(animate);
+    }
+    
+    highlightCalledNumber(calledItem) {
+        // Disabled duplicate - already handled above
+        return;
+    }
+    
     onMouseClick(event) {
         // Calculate mouse position
         const rect = this.renderer.domElement.getBoundingClientRect();
@@ -1917,6 +1857,7 @@ class RubiksCubeBingo {
         // Reset cube - remove and recreate
         this.scene.remove(this.cube);
         this.createRubiksCube();
+        this.generateBingoTickets();
         this.initializeAvailableNumbers();
         
         // Regenerate AI players
@@ -1952,19 +1893,5 @@ class RubiksCubeBingo {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Add a small delay to ensure CSS is fully loaded and container has dimensions
-    setTimeout(() => {
-        const container = document.getElementById('cube-container');
-        if (container && container.clientWidth > 0) {
-            console.log('🚀 Initializing with container ready:', container.clientWidth);
-            new RubiksCubeBingo();
-        } else {
-            console.log('⏳ Container not ready, retrying...');
-            // Retry after another delay
-            setTimeout(() => {
-                console.log('🔄 Retrying initialization...');
-                new RubiksCubeBingo();
-            }, 500);
-        }
-    }, 100);
+    new RubiksCubeBingo();
 });

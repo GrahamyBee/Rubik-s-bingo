@@ -1435,6 +1435,17 @@ class RubiksCubeBingo {
     
     autoMarkCalledNumber() {
         console.log('🎯 AutoMarkCalledNumber called!');
+        
+        // Debug: Check faceTickets structure
+        console.log('FaceTickets array:', this.faceTickets);
+        this.faceTickets.forEach((face, index) => {
+            if (face) {
+                console.log(`Face ${index}:`, face.map(sq => sq ? `${sq.color}${sq.number}` : 'null'));
+            } else {
+                console.log(`Face ${index}: undefined/null`);
+            }
+        });
+        
         if (!this.currentCall) {
             console.log('❌ No current call to auto-mark');
             return;
@@ -1715,8 +1726,13 @@ class RubiksCubeBingo {
     }
     
     markSquare(squareGroup) {
-        if (squareGroup.userData.marked) return;
+        console.log('markSquare called with:', squareGroup);
+        if (squareGroup.userData.marked) {
+            console.log('Square already marked, returning');
+            return;
+        }
         
+        console.log('Marking square...');
         squareGroup.userData.marked = true;
         
         // Add X mark for marked squares

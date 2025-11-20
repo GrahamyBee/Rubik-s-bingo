@@ -83,6 +83,15 @@ body {
     overflow: hidden;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     background: rgba(0, 0, 0, 0.1);
+    /* Debug: Ensure canvas is visible */
+    position: relative;
+}
+
+#cube-container canvas {
+    /* Force canvas visibility on mobile */
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Caller Section */
@@ -115,11 +124,11 @@ body {
 /* Current ball styling when active */
 #current-ball-position .bingo-ball {
     border-radius: 50%;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #000;
+    color: #000 !important;
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
     border: 3px solid #333;
     box-shadow: 
@@ -129,6 +138,9 @@ body {
     transition: all 0.5s ease;
     width: 80px;
     height: 80px;
+    /* Force visibility on mobile */
+    opacity: 1 !important;
+    visibility: visible !important;
     font-size: 1.5rem;
     position: relative;
 }
@@ -169,13 +181,16 @@ body {
 
 .called-ball {
     border-radius: 50%;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #000;
+    color: #000 !important;
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
     border: 2px solid #333;
+    /* Force visibility on mobile */
+    opacity: 1 !important;
+    visibility: visible !important;
     box-shadow: 
         inset -3px -3px 6px rgba(0, 0, 0, 0.3),
         inset 3px 3px 6px rgba(255, 255, 255, 0.3),

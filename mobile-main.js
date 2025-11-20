@@ -315,6 +315,8 @@ class RubiksCubeBingo {
                     const containerWidth = container ? container.clientWidth : 350;
                     const fontSize = Math.min(120, Math.max(80, containerWidth * 0.25));
                     
+                    console.log(`🔤 Creating cube text: number=${squareData.number}, fontSize=${fontSize}px, containerWidth=${containerWidth}px`);
+                    
                     // Add white text with black outline for visibility
                     context.fillStyle = '#ffffff';
                     context.strokeStyle = '#000000';
@@ -325,6 +327,8 @@ class RubiksCubeBingo {
                     
                     context.strokeText(squareData.number.toString(), 128, 128);
                     context.fillText(squareData.number.toString(), 128, 128);
+                    
+                    console.log(`✅ Text created for ${squareData.number} on ${squareData.color} square`);
                     
                     const texture = new THREE.CanvasTexture(canvas);
                     const textMaterial = new THREE.MeshBasicMaterial({ 

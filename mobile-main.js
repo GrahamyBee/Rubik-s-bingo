@@ -54,9 +54,6 @@ class RubiksCubeBingo {
             0xffffff  // White
         ];
         
-        // Simple haptic feedback support
-        this.hasHapticSupport = 'navigator' in window && 'vibrate' in navigator;
-        
         this.colorNames = ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'White'];
         
         // Prize winners tracking - updated for side prizes
@@ -122,20 +119,6 @@ class RubiksCubeBingo {
             'fiveSide': 5
         };
         return levelMap[prizeLevel];
-    }
-    
-    // Simple haptic feedback for testing
-    vibrate() {
-        if (this.hasHapticSupport) {
-            try {
-                navigator.vibrate(200); // 200ms vibration
-                console.log('Haptic feedback triggered');
-            } catch (e) {
-                console.log('Haptic feedback failed:', e);
-            }
-        } else {
-            console.log('Haptic feedback not supported');
-        }
     }
     
     init() {
@@ -316,11 +299,8 @@ class RubiksCubeBingo {
                 // Make background transparent
                 context.clearRect(0, 0, 256, 256);
                 
-                // Simple mobile font adjustment
-                let fontSize = 120;
-                if (window.innerWidth && window.innerWidth < 768) {
-                    fontSize = 90; // Smaller font for mobile screens
-                }
+                // Mobile-optimized font sizing
+                const fontSize = window.innerWidth < 768 ? 90 : 120;
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
@@ -435,9 +415,13 @@ class RubiksCubeBingo {
     handleGameStartOrCall() {
         if (!this.gameStarted) {
             // Game hasn't started yet - start the game
-            this.vibrate(); // Test haptic feedback on game start
             this.gameStarted = true;
             console.log('🎮 Game started by player');
+            
+            // Simple haptic feedback for game start
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]); // Short double buzz for start
+            }
             
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
@@ -466,6 +450,11 @@ class RubiksCubeBingo {
         this.calledNumbers.add(calledKey);
         this.currentCall = calledItem;
         this.callCount++;
+        
+        // Simple haptic feedback for number call
+        if (navigator.vibrate) {
+            navigator.vibrate(50); // Single short buzz for each call
+        }
         
         // Update button text after first call
         if (this.callCount === 1) {
@@ -1648,6 +1637,11 @@ class RubiksCubeBingo {
         
         squareGroup.userData.marked = true;
         
+        // Simple haptic feedback for marking
+        if (navigator.vibrate) {
+            navigator.vibrate(30); // Very short buzz for marking
+        }
+        
         // Add X mark for marked squares
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -1713,6 +1707,11 @@ class RubiksCubeBingo {
         // Get the side names
         const sideNames = completedSides.map(side => side.name).join(', ');
         const details = `Completed ${completedSides.length} side${completedSides.length > 1 ? 's' : ''}: ${sideNames}`;
+        
+        // Celebration haptic feedback for winning
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200, 100, 200]); // Strong celebration pattern
+        }
         
         // Add winner to prize tracking
         this.addWinnerToPrizeBox(prizeKey, 'Player 1');

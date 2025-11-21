@@ -370,7 +370,8 @@ body {
 /* Mobile Responsive */
 @media (max-width: 480px) {
     .mobile-logo {
-        max-width: 150px;
+        width: 100%;
+        max-width: 100%;
     }
     
     #cube-container {
@@ -405,7 +406,8 @@ body {
     }
     
     .mobile-logo {
-        max-width: 120px;
+        width: 100%;
+        max-width: 100%;
     }
     
     .mobile-title {

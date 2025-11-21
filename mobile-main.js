@@ -1,4 +1,6 @@
-// Rubik's Cube Bingo Game
+// Rubik's Cube Bingo Game - Mobile Version
+console.log('🚀 Loading Mobile Rubiks Cube Bingo - Version 2025112101');
+
 class RubiksCubeBingo {
     constructor() {
         this.scene = null;

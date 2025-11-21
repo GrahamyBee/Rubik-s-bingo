@@ -498,6 +498,9 @@ class RubiksCubeBingo {
             this.gameStarted = true;
             console.log('🎮 Game started by player');
             
+            // Hide AI settings and prize sections during gameplay
+            this.hideGameSetupSections();
+            
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
                 document.getElementById('call-number-btn').textContent = 'Auto Running...';
@@ -1924,6 +1927,9 @@ class RubiksCubeBingo {
         // Reset game start state - require manual start for new game
         this.gameStarted = false;
         
+        // Show AI settings and prize sections for new game setup
+        this.showGameSetupSections();
+        
         // Reset cube - remove and recreate
         this.scene.remove(this.cube);
         this.createRubiksCube();
@@ -1951,6 +1957,36 @@ class RubiksCubeBingo {
                 }
             }, 1000); // Wait for cube reset to complete
         }
+    }
+    
+    // Hide AI settings and prize sections during gameplay
+    hideGameSetupSections() {
+        const aiSettingsRow = document.getElementById('ai-settings-row');
+        const prizesSection = document.getElementById('prizes-section');
+        
+        if (aiSettingsRow) {
+            aiSettingsRow.style.display = 'none';
+        }
+        if (prizesSection) {
+            prizesSection.style.display = 'none';
+        }
+        
+        console.log('🎮 Hiding AI settings and prize sections for gameplay');
+    }
+    
+    // Show AI settings and prize sections when game ends
+    showGameSetupSections() {
+        const aiSettingsRow = document.getElementById('ai-settings-row');
+        const prizesSection = document.getElementById('prizes-section');
+        
+        if (aiSettingsRow) {
+            aiSettingsRow.style.display = 'flex';
+        }
+        if (prizesSection) {
+            prizesSection.style.display = 'block';
+        }
+        
+        console.log('🎮 Showing AI settings and prize sections for game setup');
     }
     
     animate() {

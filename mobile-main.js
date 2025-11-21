@@ -93,19 +93,15 @@ class RubiksCubeBingo {
         // Game state tracking
         this.gameStarted = false; // Track if game has been started by player
         
+        // Game state tracking
+        this.gameStarted = false; // Track if game has been started by player
+        
         this.init();
         this.setupEventListeners();
-        this.initializeMobileElements(); // Initialize mobile-specific elements
         this.generateBingoTickets();
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
-        
-        // Force one more update after everything is ready
-        setTimeout(() => {
-            console.log('🔄 Final prize amounts update after full initialization');
-            this.updatePrizeAmounts();
-        }, 200);
     }
     
     initializeMobileElements() {
@@ -460,32 +456,17 @@ class RubiksCubeBingo {
             document.getElementById('ai-win-modal').style.display = 'none';
         });
         
-        // AI Players input change - exact copy of desktop logic
-        const aiPlayersInput = document.getElementById('ai-players-input');
-        if (aiPlayersInput) {
-            aiPlayersInput.addEventListener('change', () => {
-                console.log('🔄 AI Players changed to:', aiPlayersInput.value);
-                this.generateAIPlayers();
-                this.updatePrizeAmounts();
-            });
-            console.log('✅ AI Players event listener attached');
-        } else {
-            console.error('❌ AI Players input element not found');
-        }
+        // AI Players input change
+        document.getElementById('ai-players-input').addEventListener('change', () => {
+            this.generateAIPlayers();
+            this.updatePrizeAmounts();
+        });
         
-        // Price selection change - exact copy of desktop logic  
-        const priceSelect = document.getElementById('price-select');
-        if (priceSelect) {
-            priceSelect.addEventListener('change', () => {
-                console.log('🔄 Price selection changed to:', priceSelect.value);
-                this.pricePerPlayer = parseFloat(priceSelect.value);
-                console.log(`💰 New price: ${this.pricePerPlayer}`);
-                this.updatePrizeAmounts();
-            });
-            console.log('✅ Price selection event listener attached');
-        } else {
-            console.error('❌ Price select element not found');
-        }
+        // Price selection change
+        document.getElementById('price-select').addEventListener('change', () => {
+            this.pricePerPlayer = parseFloat(document.getElementById('price-select').value);
+            this.updatePrizeAmounts();
+        });
         
         // Play mode toggle
         document.getElementById('play-mode-btn').addEventListener('click', () => {
@@ -2064,23 +2045,5 @@ class RubiksCubeBingo {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM Content Loaded - Starting mobile game initialization');
-    const game = new RubiksCubeBingo();
-    
-    // Add a manual test button for debugging
-    setTimeout(() => {
-        console.log('🧪 Adding manual test for prize calculation');
-        const testBtn = document.createElement('button');
-        testBtn.textContent = 'TEST PRIZES';
-        testBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; background: red; color: white; padding: 10px;';
-        testBtn.onclick = () => {
-            console.log('🧪 Manual test button clicked');
-            game.testPrizeUpdates();
-            setTimeout(() => {
-                console.log('🧪 Now running real updatePrizeAmounts');
-                game.updatePrizeAmounts();
-            }, 2000);
-        };
-        document.body.appendChild(testBtn);
-    }, 1000);
+    new RubiksCubeBingo();
 });

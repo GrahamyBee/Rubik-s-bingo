@@ -97,20 +97,76 @@ class RubiksCubeBingo {
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
         
-        // Ensure everything is ready before generating numbers
-        this.waitForDOMReady(() => {
-            this.generateBingoTickets();
-            console.log('✅ Initial cube setup complete');
-        });
+        // Multiple attempts to ensure numbers appear on mobile
+        this.forceNumbersToAppear();
     }
     
-    waitForDOMReady(callback) {
+    forceNumbersToAppear() {
+        console.log('🔄 Starting aggressive number generation for mobile...');
+        
+        // Attempt 1: Immediate
+        setTimeout(() => {
+            this.generateBingoTickets();
+            console.log('✅ Attempt 1: Initial generation');
+        }, 50);
+        
+        // Attempt 2: After short delay
+        setTimeout(() => {
+            this.ensureNumbersExist();
+            console.log('✅ Attempt 2: After 200ms');
+        }, 200);
+        
+        // Attempt 3: After longer delay
+        setTimeout(() => {
+            this.ensureNumbersExist();
+            console.log('✅ Attempt 3: After 500ms');
+        }, 500);
+        
+        // Attempt 4: After window load
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(callback, 100);
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    this.ensureNumbersExist();
+                    console.log('✅ Attempt 4: After window load');
+                }, 100);
             });
         } else {
-            setTimeout(callback, 100);
+            setTimeout(() => {
+                this.ensureNumbersExist();
+                console.log('✅ Attempt 4: Window already loaded');
+            }, 100);
+        }
+    }
+    
+    ensureNumbersExist() {
+        if (!this.cube || this.cube.children.length <= 1) {
+            console.log('⚠️ No cube found, skipping number check');
+            return;
+        }
+        
+        let hasNumbers = false;
+        let totalSquares = 0;
+        let squaresWithNumbers = 0;
+        
+        this.cube.children.slice(1).forEach((faceGroup) => {
+            if (faceGroup.children && faceGroup.children.length > 0) {
+                faceGroup.children.forEach((squareGroup) => {
+                    totalSquares++;
+                    if (squareGroup.userData && squareGroup.userData.textMesh) {
+                        squaresWithNumbers++;
+                        hasNumbers = true;
+                    }
+                });
+            }
+        });
+        
+        console.log(`📊 Numbers check: ${squaresWithNumbers}/${totalSquares} squares have numbers`);
+        
+        if (!hasNumbers || squaresWithNumbers < totalSquares) {
+            console.log('🔧 Regenerating missing numbers...');
+            this.generateBingoTickets();
+        } else {
+            console.log('✅ All numbers are present');
         }
     }
     
@@ -299,11 +355,30 @@ class RubiksCubeBingo {
     }
     
     generateBingoTickets() {
+        console.log('🎯 Starting generateBingoTickets...');
+        
+        if (!this.cube) {
+            console.log('❌ No cube found, cannot generate tickets');
+            return;
+        }
+        
+        const faceGroups = this.cube.children.slice(1);
+        console.log(`📦 Found ${faceGroups.length} face groups`);
+        
         // For Rubik's cube, each square has a number and color
-        this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
+        faceGroups.forEach((faceGroup, faceIndex) => {
+            console.log(`🔄 Processing face ${faceIndex}`);
+            
             // Update face group with numbers and create text
             faceGroup.children.forEach((squareGroup, index) => {
+                // Remove existing text mesh if it exists
+                if (squareGroup.userData.textMesh) {
+                    squareGroup.remove(squareGroup.userData.textMesh);
+                    squareGroup.userData.textMesh = null;
+                }
+                
                 const number = squareGroup.userData.number;
+                console.log(`📝 Creating number ${number} for face ${faceIndex}, square ${index}`);
                 
                 // Create text for the number
                 const canvas = document.createElement('canvas');
@@ -314,8 +389,11 @@ class RubiksCubeBingo {
                 // Make background transparent
                 context.clearRect(0, 0, 256, 256);
                 
-                // Mobile-optimized font sizing
-                const fontSize = window.innerWidth < 768 ? 90 : 120;
+                // Enhanced mobile detection and font sizing
+                const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const fontSize = isMobile ? 90 : 120;
+                
+                console.log(`📱 Mobile detected: ${isMobile}, fontSize: ${fontSize}, window width: ${window.innerWidth}`);
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
@@ -325,13 +403,18 @@ class RubiksCubeBingo {
                 context.textBaseline = 'middle';
                 context.lineWidth = 6;
                 
+                // Draw text
                 context.strokeText(number.toString(), 128, 128);
                 context.fillText(number.toString(), 128, 128);
                 
+                // Create texture and material
                 const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true; // Force texture update
+                
                 const textMaterial = new THREE.MeshBasicMaterial({ 
                     map: texture, 
-                    transparent: true 
+                    transparent: true,
+                    side: THREE.DoubleSide // Make sure it's visible from all angles
                 });
                 const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
                 const textMesh = new THREE.Mesh(textGeometry, textMaterial);
@@ -339,10 +422,14 @@ class RubiksCubeBingo {
                 
                 squareGroup.add(textMesh);
                 squareGroup.userData.textMesh = textMesh;
+                
+                console.log(`✅ Added number ${number} to face ${faceIndex}, square ${index}`);
             });
             
             this.faceTickets[faceIndex] = faceGroup.userData.squares;
         });
+        
+        console.log('🎯 generateBingoTickets completed');
     }
     
     initializeAvailableNumbers() {
@@ -464,19 +551,29 @@ class RubiksCubeBingo {
         
         // Check if faces have squares with numbers
         let hasNumbers = false;
+        let totalSquares = 0;
+        let squaresWithNumbers = 0;
+        
         this.cube.children.slice(1).forEach((faceGroup) => {
             if (faceGroup.children && faceGroup.children.length > 0) {
                 faceGroup.children.forEach((squareGroup) => {
+                    totalSquares++;
                     if (squareGroup.userData && squareGroup.userData.textMesh) {
+                        squaresWithNumbers++;
                         hasNumbers = true;
                     }
                 });
             }
         });
         
-        if (!hasNumbers) {
-            console.log('⚠️ Numbers not found on cube, regenerating...');
+        console.log(`📊 Cube check: ${squaresWithNumbers}/${totalSquares} squares have numbers`);
+        
+        if (!hasNumbers || squaresWithNumbers < 10) { // If less than 10 squares have numbers, regenerate
+            console.log('⚠️ Numbers missing or incomplete, regenerating...');
+            // Force regenerate multiple times for mobile
             this.generateBingoTickets();
+            setTimeout(() => this.generateBingoTickets(), 100);
+            setTimeout(() => this.generateBingoTickets(), 300);
         } else {
             console.log('✅ Cube and numbers are ready');
         }

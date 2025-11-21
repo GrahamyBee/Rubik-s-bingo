@@ -105,17 +105,13 @@ class RubiksCubeBingo {
     initializeMobileElements() {
         console.log('🔧 Initializing mobile-specific elements...');
         
-        // Set initial price value from dropdown
+        // Set initial price value from dropdown - exact copy of desktop logic
         const priceSelect = document.getElementById('price-select');
         if (priceSelect) {
-            this.pricePerPlayer = parseFloat(priceSelect.value) || 2.0;
-        } else {
-            // Fallback to input if it exists
-            const priceInput = document.getElementById('price-per-player');
-            if (priceInput) {
-                this.pricePerPlayer = parseFloat(priceInput.value) || 10;
-            }
+            this.pricePerPlayer = parseFloat(priceSelect.value);
         }
+        
+        console.log(`💰 Initial price set to: ${this.formatCurrency(this.pricePerPlayer)}`);
         
         // Ensure mode button has proper text and mobile styling
         const modeBtn = document.getElementById('play-mode-btn');
@@ -459,29 +455,17 @@ class RubiksCubeBingo {
             document.getElementById('ai-win-modal').style.display = 'none';
         });
         
-        // AI Players input change
+        // AI Players input change - exact copy of desktop logic
         document.getElementById('ai-players-input').addEventListener('change', () => {
             this.generateAIPlayers();
             this.updatePrizeAmounts();
         });
         
-        // Price change event - prioritize dropdown (mobile) over input (legacy)
-        const priceSelect = document.getElementById('price-select');
-        const priceInput = document.getElementById('price-per-player');
-        
-        if (priceSelect) {
-            priceSelect.addEventListener('change', () => {
-                this.pricePerPlayer = parseFloat(priceSelect.value);
-                this.updatePrizeAmounts();
-                console.log(`💰 Price updated to: ${this.pricePerPlayer}`);
-            });
-        } else if (priceInput) {
-            priceInput.addEventListener('change', () => {
-                this.pricePerPlayer = parseFloat(priceInput.value);
-                this.updatePrizeAmounts();
-                console.log(`💰 Price updated to: ${this.pricePerPlayer}`);
-            });
-        }
+        // Price selection change - exact copy of desktop logic  
+        document.getElementById('price-select').addEventListener('change', () => {
+            this.pricePerPlayer = parseFloat(document.getElementById('price-select').value);
+            this.updatePrizeAmounts();
+        });
         
         // Play mode toggle
         document.getElementById('play-mode-btn').addEventListener('click', () => {
@@ -1075,31 +1059,29 @@ class RubiksCubeBingo {
         const numPlayers = parseInt(document.getElementById('ai-players-input').value) + 1; // +1 for human player
         const totalPot = numPlayers * this.pricePerPlayer;
         
-        // Calculate side prize amounts (updated percentages)
+        // Calculate side prize amounts (updated percentages) - exact copy from desktop
         const oneSideAmount = totalPot * 0.05; // 5% for 1 side
         const twoSideAmount = totalPot * 0.10; // 10% for 2 sides
         const threeSideAmount = totalPot * 0.15; // 15% for 3 sides
         const fourSideAmount = totalPot * 0.20; // 20% for 4 sides
         const fiveSideAmount = totalPot * 0.30; // 30% for 5 sides
         
-        // Update mobile prize amounts using IDs
-        const prizes = [
-            { id: 'one-side-amount', key: 'oneSide', amount: oneSideAmount },
-            { id: 'two-side-amount', key: 'twoSide', amount: twoSideAmount },
-            { id: 'three-side-amount', key: 'threeSide', amount: threeSideAmount },
-            { id: 'four-side-amount', key: 'fourSide', amount: fourSideAmount },
-            { id: 'five-side-amount', key: 'fiveSide', amount: fiveSideAmount }
+        // Update mobile prize amounts using direct ID targeting (adapted for mobile HTML)
+        const sidePrizes = [
+            { key: 'oneSide', id: 'one-side-amount', amount: oneSideAmount },
+            { key: 'twoSide', id: 'two-side-amount', amount: twoSideAmount },
+            { key: 'threeSide', id: 'three-side-amount', amount: threeSideAmount },
+            { key: 'fourSide', id: 'four-side-amount', amount: fourSideAmount },
+            { key: 'fiveSide', id: 'five-side-amount', amount: fiveSideAmount }
         ];
         
-        prizes.forEach(prize => {
+        sidePrizes.forEach(prize => {
             const totalPrize = prize.amount + this.sidePrizeRollover[prize.key];
             const prizeElement = document.getElementById(prize.id);
             if (prizeElement) {
                 prizeElement.textContent = this.formatCurrency(totalPrize);
             }
         });
-        
-        console.log(`💰 Updated prizes for ${numPlayers} players at ${this.formatCurrency(this.pricePerPlayer)} each (Total: ${this.formatCurrency(totalPot)})`);
     }
     
     formatCurrency(amount) {

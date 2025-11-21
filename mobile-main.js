@@ -461,19 +461,31 @@ class RubiksCubeBingo {
         });
         
         // AI Players input change - exact copy of desktop logic
-        document.getElementById('ai-players-input').addEventListener('change', () => {
-            console.log('🔄 AI Players changed');
-            this.generateAIPlayers();
-            this.updatePrizeAmounts();
-        });
+        const aiPlayersInput = document.getElementById('ai-players-input');
+        if (aiPlayersInput) {
+            aiPlayersInput.addEventListener('change', () => {
+                console.log('🔄 AI Players changed to:', aiPlayersInput.value);
+                this.generateAIPlayers();
+                this.updatePrizeAmounts();
+            });
+            console.log('✅ AI Players event listener attached');
+        } else {
+            console.error('❌ AI Players input element not found');
+        }
         
         // Price selection change - exact copy of desktop logic  
-        document.getElementById('price-select').addEventListener('change', () => {
-            console.log('🔄 Price selection changed');
-            this.pricePerPlayer = parseFloat(document.getElementById('price-select').value);
-            console.log(`💰 New price: ${this.pricePerPlayer}`);
-            this.updatePrizeAmounts();
-        });
+        const priceSelect = document.getElementById('price-select');
+        if (priceSelect) {
+            priceSelect.addEventListener('change', () => {
+                console.log('🔄 Price selection changed to:', priceSelect.value);
+                this.pricePerPlayer = parseFloat(priceSelect.value);
+                console.log(`💰 New price: ${this.pricePerPlayer}`);
+                this.updatePrizeAmounts();
+            });
+            console.log('✅ Price selection event listener attached');
+        } else {
+            console.error('❌ Price select element not found');
+        }
         
         // Play mode toggle
         document.getElementById('play-mode-btn').addEventListener('click', () => {
@@ -1064,50 +1076,77 @@ class RubiksCubeBingo {
     }
     
     updatePrizeAmounts() {
+        console.log('🎯 === STARTING PRIZE CALCULATION ===');
+        
         const aiPlayersElement = document.getElementById('ai-players-input');
         const priceSelectElement = document.getElementById('price-select');
         
         if (!aiPlayersElement || !priceSelectElement) {
-            console.error('❌ Required elements not found');
+            console.error('❌ Required elements not found:', {
+                aiPlayersElement: !!aiPlayersElement,
+                priceSelectElement: !!priceSelectElement
+            });
             return;
         }
         
-        const numPlayers = parseInt(aiPlayersElement.value) + 1; // +1 for human player
+        const aiPlayersValue = aiPlayersElement.value;
+        const priceValue = priceSelectElement.value;
+        const numPlayers = parseInt(aiPlayersValue) + 1; // +1 for human player
         const totalPot = numPlayers * this.pricePerPlayer;
         
-        console.log(`🔍 Prize calculation debug:`);
-        console.log(`  - AI Players input value: ${aiPlayersElement.value}`);
+        console.log(`� Calculation inputs:`);
+        console.log(`  - AI Players dropdown value: "${aiPlayersValue}"`);
+        console.log(`  - Price dropdown value: "${priceValue}"`);
+        console.log(`  - this.pricePerPlayer: ${this.pricePerPlayer}`);
         console.log(`  - Total players: ${numPlayers}`);
-        console.log(`  - Price per player: ${this.pricePerPlayer}`);
         console.log(`  - Total pot: ${totalPot}`);
         
-        // Calculate side prize amounts (updated percentages) - exact copy from desktop
-        const oneSideAmount = totalPot * 0.05; // 5% for 1 side
-        const twoSideAmount = totalPot * 0.10; // 10% for 2 sides
-        const threeSideAmount = totalPot * 0.15; // 15% for 3 sides
-        const fourSideAmount = totalPot * 0.20; // 20% for 4 sides
-        const fiveSideAmount = totalPot * 0.30; // 30% for 5 sides
+        if (totalPot === 0 || isNaN(totalPot)) {
+            console.error('❌ Invalid total pot calculation');
+            return;
+        }
         
-        // Update mobile prize amounts using direct ID targeting (adapted for mobile HTML)
+        // Calculate side prize amounts (updated percentages) - exact copy from desktop
+        const prizes = {
+            oneSide: totalPot * 0.05,   // 5% for 1 side
+            twoSide: totalPot * 0.10,   // 10% for 2 sides
+            threeSide: totalPot * 0.15, // 15% for 3 sides
+            fourSide: totalPot * 0.20,  // 20% for 4 sides
+            fiveSide: totalPot * 0.30   // 30% for 5 sides
+        };
+        
+        console.log(`💰 Prize amounts before rollover:`, prizes);
+        
+        // Update mobile prize amounts using direct ID targeting
         const sidePrizes = [
-            { key: 'oneSide', id: 'one-side-amount', amount: oneSideAmount },
-            { key: 'twoSide', id: 'two-side-amount', amount: twoSideAmount },
-            { key: 'threeSide', id: 'three-side-amount', amount: threeSideAmount },
-            { key: 'fourSide', id: 'four-side-amount', amount: fourSideAmount },
-            { key: 'fiveSide', id: 'five-side-amount', amount: fiveSideAmount }
+            { key: 'oneSide', id: 'one-side-amount', amount: prizes.oneSide },
+            { key: 'twoSide', id: 'two-side-amount', amount: prizes.twoSide },
+            { key: 'threeSide', id: 'three-side-amount', amount: prizes.threeSide },
+            { key: 'fourSide', id: 'four-side-amount', amount: prizes.fourSide },
+            { key: 'fiveSide', id: 'five-side-amount', amount: prizes.fiveSide }
         ];
         
         sidePrizes.forEach(prize => {
             const totalPrize = prize.amount + this.sidePrizeRollover[prize.key];
             const prizeElement = document.getElementById(prize.id);
-            console.log(`  - ${prize.key}: ${this.formatCurrency(totalPrize)} (element found: ${!!prizeElement})`);
+            const formattedAmount = this.formatCurrency(totalPrize);
+            
+            console.log(`🎯 Updating ${prize.key}:`);
+            console.log(`  - Base amount: ${prize.amount}`);
+            console.log(`  - Rollover: ${this.sidePrizeRollover[prize.key]}`);
+            console.log(`  - Total: ${totalPrize}`);
+            console.log(`  - Formatted: ${formattedAmount}`);
+            console.log(`  - Element found: ${!!prizeElement}`);
+            
             if (prizeElement) {
-                prizeElement.textContent = this.formatCurrency(totalPrize);
-                console.log(`✅ Updated ${prize.id} to ${this.formatCurrency(totalPrize)}`);
+                prizeElement.textContent = formattedAmount;
+                console.log(`✅ Successfully updated ${prize.id} to "${formattedAmount}"`);
             } else {
                 console.error(`❌ Prize element not found: ${prize.id}`);
             }
         });
+        
+        console.log('🎯 === PRIZE CALCULATION COMPLETE ===');
     }
     
     formatCurrency(amount) {

@@ -54,6 +54,9 @@ class RubiksCubeBingo {
             0xffffff  // White
         ];
         
+        // Simple haptic feedback support
+        this.hasHapticSupport = 'navigator' in window && 'vibrate' in navigator;
+        
         this.colorNames = ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'White'];
         
         // Prize winners tracking - updated for side prizes
@@ -121,6 +124,20 @@ class RubiksCubeBingo {
         return levelMap[prizeLevel];
     }
     
+    // Simple haptic feedback for testing
+    vibrate() {
+        if (this.hasHapticSupport) {
+            try {
+                navigator.vibrate(200); // 200ms vibration
+                console.log('Haptic feedback triggered');
+            } catch (e) {
+                console.log('Haptic feedback failed:', e);
+            }
+        } else {
+            console.log('Haptic feedback not supported');
+        }
+    }
+    
     init() {
         // Scene setup
         this.scene = new THREE.Scene();
@@ -182,14 +199,6 @@ class RubiksCubeBingo {
         this.createBingoFaces();
         
         this.scene.add(this.cube);
-        
-        // Force initial refresh of textures for mobile
-        this.refreshCubeNumbers();
-        
-        // Additional refresh after a delay to handle timing issues
-        setTimeout(() => {
-            this.refreshCubeNumbers();
-        }, 100);
     }
     
     createBingoFaces() {
@@ -307,24 +316,11 @@ class RubiksCubeBingo {
                 // Make background transparent
                 context.clearRect(0, 0, 256, 256);
                 
-                // Mobile-responsive font sizing with fallbacks
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const isPortrait = window.innerHeight > window.innerWidth;
-                let fontSize = 120; // Default desktop size
-                
-                if (isMobile) {
-                    // Use fallback dimensions if screen dimensions aren't available yet
-                    const screenWidth = window.innerWidth || window.screen.width || 375;
-                    const screenHeight = window.innerHeight || window.screen.height || 667;
-                    
-                    if (isPortrait || screenHeight > screenWidth) {
-                        fontSize = Math.max(80, Math.min(120, screenWidth * 0.15));
-                    } else {
-                        fontSize = Math.max(60, Math.min(100, screenHeight * 0.12));
-                    }
+                // Simple mobile font adjustment
+                let fontSize = 120;
+                if (window.innerWidth && window.innerWidth < 768) {
+                    fontSize = 90; // Smaller font for mobile screens
                 }
-                
-                console.log(`Font size: ${fontSize}px (mobile: ${isMobile}, portrait: ${isPortrait})`);
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
@@ -332,13 +328,12 @@ class RubiksCubeBingo {
                 context.font = `bold ${fontSize}px Arial`;
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
-                context.lineWidth = Math.max(2, fontSize * 0.05);
+                context.lineWidth = 6;
                 
                 context.strokeText(number.toString(), 128, 128);
                 context.fillText(number.toString(), 128, 128);
                 
                 const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true; // Force texture update
                 const textMaterial = new THREE.MeshBasicMaterial({ 
                     map: texture, 
                     transparent: true 
@@ -376,21 +371,6 @@ class RubiksCubeBingo {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
-    }
-    
-    // Force refresh cube number textures (useful for mobile timing issues)
-    refreshCubeNumbers() {
-        console.log('Refreshing cube numbers...');
-        this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
-            faceGroup.children.forEach((squareGroup, squareIndex) => {
-                const textMesh = squareGroup.userData.textMesh;
-                if (textMesh && textMesh.material && textMesh.material.map) {
-                    textMesh.material.map.needsUpdate = true;
-                    textMesh.material.needsUpdate = true;
-                }
-            });
-        });
-        console.log('Cube numbers refreshed');
     }
     
     setupEventListeners() {
@@ -455,6 +435,7 @@ class RubiksCubeBingo {
     handleGameStartOrCall() {
         if (!this.gameStarted) {
             // Game hasn't started yet - start the game
+            this.vibrate(); // Test haptic feedback on game start
             this.gameStarted = true;
             console.log('🎮 Game started by player');
             

@@ -407,7 +407,7 @@ body {
 
 @media (orientation: landscape) and (max-height: 600px) {
     .mobile-header {
-        padding: 10px;
+        padding: 5px 10px 3px 10px; /* Reduced by 50% to match main styles */
     }
     
     .mobile-logo {

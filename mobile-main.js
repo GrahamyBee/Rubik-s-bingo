@@ -88,6 +88,11 @@ class RubiksCubeBingo {
         this.animationStopped = false; // Flag to temporarily stop main animation loop
         this.gamePaused = false; // Flag to pause auto-play for winner announcements
         
+        // Face detection for haptic feedback
+        this.lastCheckedRotation = { x: 0, y: 0, z: 0 };
+        this.lastCorrectFaceCheck = 0;
+        this.hasTriggeredCorrectFaceHaptic = false;
+        
         // Progressive prize system - tracks which prize levels have been completed
         this.completedPrizeLevels = new Set(); // 'oneSide', 'twoSide', etc.
         
@@ -150,6 +155,102 @@ class RubiksCubeBingo {
     
     hapticGameStart() {
         this.hapticFeedback([80, 40, 80]); // Double pulse
+    }
+    
+    hapticCorrectFace() {
+        this.hapticFeedback([60, 30, 60]); // Double pulse for finding correct face
+    }
+    
+    // Detect which face is currently most visible to the camera
+    getCurrentVisibleFace() {
+        if (!this.cube) return -1;
+        
+        // Get the camera direction vector
+        const cameraDirection = new THREE.Vector3(0, 0, -1);
+        cameraDirection.applyQuaternion(this.camera.quaternion);
+        
+        // Face normals in local cube space (before any rotation)
+        const faceNormals = [
+            new THREE.Vector3(0, 0, 1),   // 0: Front
+            new THREE.Vector3(0, 0, -1),  // 1: Back  
+            new THREE.Vector3(1, 0, 0),   // 2: Right
+            new THREE.Vector3(-1, 0, 0),  // 3: Left
+            new THREE.Vector3(0, 1, 0),   // 4: Top
+            new THREE.Vector3(0, -1, 0)   // 5: Bottom
+        ];
+        
+        // Transform face normals by cube rotation
+        const worldNormals = faceNormals.map(normal => {
+            const worldNormal = normal.clone();
+            worldNormal.applyQuaternion(this.cube.quaternion);
+            return worldNormal;
+        });
+        
+        // Find face most aligned with camera direction
+        let maxDot = -2;
+        let visibleFace = -1;
+        
+        worldNormals.forEach((normal, index) => {
+            const dot = normal.dot(cameraDirection);
+            if (dot > maxDot) {
+                maxDot = dot;
+                visibleFace = index;
+            }
+        });
+        
+        return visibleFace;
+    }
+    
+    // Check if the current called number is on the currently visible face
+    checkForCorrectFaceHaptic() {
+        // Only check in manual mode when there's a current call
+        if (this.isAutoMode || !this.currentCall || !this.gameStarted) {
+            this.hasTriggeredCorrectFaceHaptic = false;
+            return;
+        }
+        
+        // Throttle checks to every 200ms
+        const now = Date.now();
+        if (now - this.lastCorrectFaceCheck < 200) return;
+        this.lastCorrectFaceCheck = now;
+        
+        // Check if rotation has changed significantly
+        const currentRotation = {
+            x: this.cube.rotation.x,
+            y: this.cube.rotation.y,
+            z: this.cube.rotation.z
+        };
+        
+        const rotationThreshold = 0.1; // Radians
+        const hasRotationChanged = 
+            Math.abs(currentRotation.x - this.lastCheckedRotation.x) > rotationThreshold ||
+            Math.abs(currentRotation.y - this.lastCheckedRotation.y) > rotationThreshold ||
+            Math.abs(currentRotation.z - this.lastCheckedRotation.z) > rotationThreshold;
+        
+        if (!hasRotationChanged) return;
+        
+        this.lastCheckedRotation = { ...currentRotation };
+        
+        // Get currently visible face
+        const visibleFace = this.getCurrentVisibleFace();
+        if (visibleFace === -1) return;
+        
+        // Check if the current call is on this face
+        if (this.faceTickets[visibleFace]) {
+            const hasCurrentCall = this.faceTickets[visibleFace].some(square => 
+                square && square.number === this.currentCall.number && 
+                square.color === this.currentCall.color
+            );
+            
+            if (hasCurrentCall && !this.hasTriggeredCorrectFaceHaptic) {
+                console.log(`🎯 Player found correct face! ${this.currentCall.color}${this.currentCall.number} is on visible face ${visibleFace}`);
+                this.hapticCorrectFace();
+                this.hasTriggeredCorrectFaceHaptic = true;
+            } else if (!hasCurrentCall) {
+                // Reset haptic flag when viewing a different face
+                this.hasTriggeredCorrectFaceHaptic = false;
+            }
+        }
     }
     
     init() {
@@ -491,6 +592,9 @@ class RubiksCubeBingo {
         this.calledNumbers.add(calledKey);
         this.currentCall = calledItem;
         this.callCount++;
+        
+        // Reset correct face haptic flag for new number
+        this.hasTriggeredCorrectFaceHaptic = false;
         
         // Update button text after first call
         if (this.callCount === 1) {
@@ -1929,6 +2033,10 @@ class RubiksCubeBingo {
         requestAnimationFrame(() => this.animate());
         
         this.controls.update();
+        
+        // Check for correct face haptic feedback (only in manual mode)
+        this.checkForCorrectFaceHaptic();
+        
         this.renderer.render(this.scene, this.camera);
     }
 }

@@ -54,6 +54,9 @@ class RubiksCubeBingo {
             0xffffff  // White
         ];
         
+        // Haptic feedback support
+        this.supportsHaptics = 'navigator' in window && 'vibrate' in navigator;
+        
         this.colorNames = ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'White'];
         
         // Prize winners tracking - updated for side prizes
@@ -119,6 +122,34 @@ class RubiksCubeBingo {
             'fiveSide': 5
         };
         return levelMap[prizeLevel];
+    }
+    
+    // Haptic Feedback Methods
+    hapticFeedback(pattern = [50]) {
+        if (this.supportsHaptics && navigator.vibrate) {
+            navigator.vibrate(pattern);
+        }
+    }
+    
+    // Different haptic patterns for different actions
+    hapticButtonPress() {
+        this.hapticFeedback([30]); // Short tap
+    }
+    
+    hapticNumberCall() {
+        this.hapticFeedback([50, 50, 50]); // Triple pulse
+    }
+    
+    hapticSquareMark() {
+        this.hapticFeedback([25]); // Very short tap
+    }
+    
+    hapticWin() {
+        this.hapticFeedback([100, 50, 100, 50, 200]); // Victory pattern
+    }
+    
+    hapticGameStart() {
+        this.hapticFeedback([80, 40, 80]); // Double pulse
     }
     
     init() {
@@ -423,10 +454,13 @@ class RubiksCubeBingo {
     }
     
     handleGameStartOrCall() {
+        this.hapticButtonPress(); // Haptic feedback for button press
+        
         if (!this.gameStarted) {
             // Game hasn't started yet - start the game
             this.gameStarted = true;
             console.log('🎮 Game started by player');
+            this.hapticGameStart(); // Special haptic for game start
             
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
@@ -449,6 +483,8 @@ class RubiksCubeBingo {
             alert('All numbers have been called!');
             return;
         }
+        
+        this.hapticNumberCall(); // Haptic feedback for number call
         
         const calledItem = this.availableNumbers.pop();
         const calledKey = `${calledItem.color}${calledItem.number}`;
@@ -1049,6 +1085,7 @@ class RubiksCubeBingo {
     }
     
     togglePlayMode() {
+        this.hapticButtonPress(); // Haptic feedback for mode toggle
         this.isAutoMode = !this.isAutoMode;
         const button = document.getElementById('play-mode-btn');
         
@@ -1635,6 +1672,7 @@ class RubiksCubeBingo {
     markSquare(squareGroup) {
         if (squareGroup.userData.marked) return;
         
+        this.hapticSquareMark(); // Haptic feedback for square marking
         squareGroup.userData.marked = true;
         
         // Add X mark for marked squares
@@ -1699,6 +1737,8 @@ class RubiksCubeBingo {
     }
     
     showSideWin(title, completedSides, prizeKey) {
+        this.hapticWin(); // Victory haptic feedback!
+        
         // Get the side names
         const sideNames = completedSides.map(side => side.name).join(', ');
         const details = `Completed ${completedSides.length} side${completedSides.length > 1 ? 's' : ''}: ${sideNames}`;
@@ -1759,6 +1799,8 @@ class RubiksCubeBingo {
     }
     
     resetGame() {
+        this.hapticButtonPress(); // Haptic feedback for reset
+        
         // Stop auto-play if running (but don't change the mode preference)
         this.stopAutoPlay();
         

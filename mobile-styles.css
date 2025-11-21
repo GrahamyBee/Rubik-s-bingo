@@ -17,7 +17,7 @@ body {
 /* Header */
 .mobile-header {
     text-align: center;
-    padding: 15px;
+    padding: 15px 15px 7px 15px; /* Reduced bottom padding by 50% */
 }
 
 .mobile-logo {
@@ -25,7 +25,7 @@ body {
     max-width: 100%;
     height: auto;
     border-radius: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 5px; /* Reduced margin by 50% */
 }
 
 .mobile-title {
@@ -36,7 +36,7 @@ body {
 
 /* Cube */
 .cube-section {
-    padding: 15px;
+    padding: 7px 15px 15px 15px; /* Reduced top padding by 50% */
     text-align: center;
 }
 

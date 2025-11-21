@@ -100,6 +100,12 @@ class RubiksCubeBingo {
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
+        
+        // Force one more update after everything is ready
+        setTimeout(() => {
+            console.log('🔄 Final prize amounts update after full initialization');
+            this.updatePrizeAmounts();
+        }, 200);
     }
     
     initializeMobileElements() {
@@ -109,15 +115,8 @@ class RubiksCubeBingo {
         const priceSelect = document.getElementById('price-select');
         if (priceSelect) {
             this.pricePerPlayer = parseFloat(priceSelect.value);
+            console.log(`💰 Initial price set to: ${this.formatCurrency(this.pricePerPlayer)}`);
         }
-        
-        console.log(`💰 Initial price set to: ${this.formatCurrency(this.pricePerPlayer)}`);
-        
-        // Force update prize amounts after mobile elements are ready
-        setTimeout(() => {
-            console.log('🔄 Forcing prize amounts update after mobile initialization');
-            this.updatePrizeAmounts();
-        }, 100);
         
         // Ensure mode button has proper text and mobile styling
         const modeBtn = document.getElementById('play-mode-btn');
@@ -1065,11 +1064,19 @@ class RubiksCubeBingo {
     }
     
     updatePrizeAmounts() {
-        const numPlayers = parseInt(document.getElementById('ai-players-input').value) + 1; // +1 for human player
+        const aiPlayersElement = document.getElementById('ai-players-input');
+        const priceSelectElement = document.getElementById('price-select');
+        
+        if (!aiPlayersElement || !priceSelectElement) {
+            console.error('❌ Required elements not found');
+            return;
+        }
+        
+        const numPlayers = parseInt(aiPlayersElement.value) + 1; // +1 for human player
         const totalPot = numPlayers * this.pricePerPlayer;
         
         console.log(`🔍 Prize calculation debug:`);
-        console.log(`  - AI Players input value: ${document.getElementById('ai-players-input').value}`);
+        console.log(`  - AI Players input value: ${aiPlayersElement.value}`);
         console.log(`  - Total players: ${numPlayers}`);
         console.log(`  - Price per player: ${this.pricePerPlayer}`);
         console.log(`  - Total pot: ${totalPot}`);
@@ -1096,6 +1103,7 @@ class RubiksCubeBingo {
             console.log(`  - ${prize.key}: ${this.formatCurrency(totalPrize)} (element found: ${!!prizeElement})`);
             if (prizeElement) {
                 prizeElement.textContent = this.formatCurrency(totalPrize);
+                console.log(`✅ Updated ${prize.id} to ${this.formatCurrency(totalPrize)}`);
             } else {
                 console.error(`❌ Prize element not found: ${prize.id}`);
             }

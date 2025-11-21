@@ -113,6 +113,12 @@ class RubiksCubeBingo {
         
         console.log(`💰 Initial price set to: ${this.formatCurrency(this.pricePerPlayer)}`);
         
+        // Force update prize amounts after mobile elements are ready
+        setTimeout(() => {
+            console.log('🔄 Forcing prize amounts update after mobile initialization');
+            this.updatePrizeAmounts();
+        }, 100);
+        
         // Ensure mode button has proper text and mobile styling
         const modeBtn = document.getElementById('play-mode-btn');
         if (modeBtn) {
@@ -457,13 +463,16 @@ class RubiksCubeBingo {
         
         // AI Players input change - exact copy of desktop logic
         document.getElementById('ai-players-input').addEventListener('change', () => {
+            console.log('🔄 AI Players changed');
             this.generateAIPlayers();
             this.updatePrizeAmounts();
         });
         
         // Price selection change - exact copy of desktop logic  
         document.getElementById('price-select').addEventListener('change', () => {
+            console.log('🔄 Price selection changed');
             this.pricePerPlayer = parseFloat(document.getElementById('price-select').value);
+            console.log(`💰 New price: ${this.pricePerPlayer}`);
             this.updatePrizeAmounts();
         });
         
@@ -1059,6 +1068,12 @@ class RubiksCubeBingo {
         const numPlayers = parseInt(document.getElementById('ai-players-input').value) + 1; // +1 for human player
         const totalPot = numPlayers * this.pricePerPlayer;
         
+        console.log(`🔍 Prize calculation debug:`);
+        console.log(`  - AI Players input value: ${document.getElementById('ai-players-input').value}`);
+        console.log(`  - Total players: ${numPlayers}`);
+        console.log(`  - Price per player: ${this.pricePerPlayer}`);
+        console.log(`  - Total pot: ${totalPot}`);
+        
         // Calculate side prize amounts (updated percentages) - exact copy from desktop
         const oneSideAmount = totalPot * 0.05; // 5% for 1 side
         const twoSideAmount = totalPot * 0.10; // 10% for 2 sides
@@ -1078,8 +1093,11 @@ class RubiksCubeBingo {
         sidePrizes.forEach(prize => {
             const totalPrize = prize.amount + this.sidePrizeRollover[prize.key];
             const prizeElement = document.getElementById(prize.id);
+            console.log(`  - ${prize.key}: ${this.formatCurrency(totalPrize)} (element found: ${!!prizeElement})`);
             if (prizeElement) {
                 prizeElement.textContent = this.formatCurrency(totalPrize);
+            } else {
+                console.error(`❌ Prize element not found: ${prize.id}`);
             }
         });
     }

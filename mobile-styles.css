@@ -94,17 +94,14 @@ body {
     height: 100% !important;
 }
 
-/* Caller Section */
+/* Caller Section - Simplified */
 .caller-section {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
-    margin: 0 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    border: 2px solid #333;
     display: flex;
     gap: 15px;
     align-items: center;
+    justify-content: center;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
 .current-call {
@@ -114,14 +111,12 @@ body {
 .previous-calls {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 10px;
 }
 
 .previous-calls-header {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: bold;
+    display: none; /* Hide the "Previous Calls:" text to reduce clutter */
 }
 
 #previous-balls-container {
@@ -130,6 +125,7 @@ body {
     flex-wrap: wrap;
     max-height: 80px;
     overflow-y: auto;
+    justify-content: flex-start;
 }
 
 #current-ball-position {
@@ -138,11 +134,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    border-radius: 50%;
     font-size: 18px;
     font-weight: bold;
-    padding: 15px;
 }
 
 /* Current ball styling when active */
@@ -635,6 +629,18 @@ body {
     .control-row {
         flex-direction: column;
         gap: 15px;
+    }
+    
+    /* Keep main action buttons side by side */
+    .control-row:first-child {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .control-row:first-child .main-btn {
+        font-size: 14px;
+        padding: 12px 8px;
+        flex: 1;
     }
     
     .control-row .input-group {

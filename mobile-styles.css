@@ -179,7 +179,7 @@ body {
     border-radius: 8px;
 }
 
-.called-ball {
+.bingo-ball {
     border-radius: 50%;
     display: flex !important;
     align-items: center;
@@ -204,7 +204,7 @@ body {
     margin: 2px;
 }
 
-.called-ball::before {
+.bingo-ball::before {
     content: '';
     position: absolute;
     top: 15%;
@@ -214,6 +214,34 @@ body {
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent 50%);
     border-radius: 50%;
     pointer-events: none;
+}
+
+.bingo-ball.current {
+    width: 70px;
+    height: 70px;
+    font-size: 1.4rem;
+    animation: ballBounce 0.6s ease-out;
+}
+
+.bingo-ball.previous {
+    width: 45px;
+    height: 45px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+@keyframes ballBounce {
+    0% { 
+        transform: scale(0.5) translateY(-50px);
+        opacity: 0;
+    }
+    50% { 
+        transform: scale(1.1) translateY(-10px);
+    }
+    100% { 
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 /* Controls Section */
@@ -538,7 +566,7 @@ body {
     }
     
     /* Smaller bingo balls on very small screens */
-    .called-ball {
+    .bingo-ball {
         width: 40px;
         height: 40px;
         font-size: 12px;
@@ -576,7 +604,7 @@ body {
     }
     
     /* Slightly larger balls on medium screens */
-    .called-ball {
+    .bingo-ball {
         width: 50px;
         height: 50px;
         font-size: 15px;

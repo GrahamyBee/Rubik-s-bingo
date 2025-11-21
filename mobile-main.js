@@ -54,9 +54,6 @@ class RubiksCubeBingo {
             0xffffff  // White
         ];
         
-        // Haptic feedback support
-        this.supportsHaptics = 'navigator' in window && 'vibrate' in navigator;
-        
         this.colorNames = ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'White'];
         
         // Prize winners tracking - updated for side prizes
@@ -122,17 +119,6 @@ class RubiksCubeBingo {
             'fiveSide': 5
         };
         return levelMap[prizeLevel];
-    }
-    
-    // Simple haptic feedback
-    vibrate(pattern) {
-        try {
-            if (this.supportsHaptics && navigator.vibrate) {
-                navigator.vibrate(pattern);
-            }
-        } catch (e) {
-            // Silently fail if vibration not supported
-        }
     }
     
     init() {
@@ -463,8 +449,6 @@ class RubiksCubeBingo {
             alert('All numbers have been called!');
             return;
         }
-        
-        this.vibrate([50, 50, 50]); // Haptic feedback for number call
         
         const calledItem = this.availableNumbers.pop();
         const calledKey = `${calledItem.color}${calledItem.number}`;
@@ -1065,7 +1049,6 @@ class RubiksCubeBingo {
     }
     
     togglePlayMode() {
-        this.vibrate([30]); // Haptic feedback for button press
         this.isAutoMode = !this.isAutoMode;
         const button = document.getElementById('play-mode-btn');
         
@@ -1652,7 +1635,6 @@ class RubiksCubeBingo {
     markSquare(squareGroup) {
         if (squareGroup.userData.marked) return;
         
-        this.vibrate([25]); // Haptic feedback for square marking
         squareGroup.userData.marked = true;
         
         // Add X mark for marked squares

@@ -1,6 +1,4 @@
-// Rubik's Cube Bingo Game - Mobile Version
-console.log('🚀 Loading Mobile Rubiks Cube Bingo - Version 2025112101');
-
+// Rubik's Cube Bingo Game
 class RubiksCubeBingo {
     constructor() {
         this.scene = null;
@@ -93,73 +91,19 @@ class RubiksCubeBingo {
         // Game state tracking
         this.gameStarted = false; // Track if game has been started by player
         
-        // Game state tracking
-        this.gameStarted = false; // Track if game has been started by player
-        
         this.init();
         this.setupEventListeners();
-        this.generateBingoTickets();
-        this.generateAIPlayers();
-        this.updateAllCountdowns();
-        this.updatePrizeAmounts();
-    }
-    
-    initializeMobileElements() {
-        console.log('🔧 Initializing mobile-specific elements...');
         
-        // Set initial price value from dropdown - exact copy of desktop logic
-        const priceSelect = document.getElementById('price-select');
-        if (priceSelect) {
-            this.pricePerPlayer = parseFloat(priceSelect.value);
-            console.log(`💰 Initial price set to: ${this.formatCurrency(this.pricePerPlayer)}`);
-        }
-        
-        // Ensure mode button has proper text and mobile styling
-        const modeBtn = document.getElementById('play-mode-btn');
-        if (modeBtn) {
-            modeBtn.textContent = this.isAutoMode ? 'Auto' : 'Manual';
-            modeBtn.className = `mode-btn ${this.isAutoMode ? 'auto' : 'manual'}`;
-        }
-        
-        // Force mobile styling on key elements
-        this.applyMobileForcedStyles();
-        
-        console.log('✅ Mobile elements initialized');
-    }
-    
-    applyMobileForcedStyles() {
-        // Force proper input sizing
-        const inputs = document.querySelectorAll('input[type="number"], .mobile-input');
-        inputs.forEach(input => {
-            input.style.minWidth = '80px';
-            input.style.fontSize = '16px';
-            input.style.padding = '12px';
-            input.style.textAlign = 'center';
-        });
-        
-        // Ensure labels are visible and properly styled
-        const labels = document.querySelectorAll('.input-group label');
-        labels.forEach(label => {
-            label.style.fontSize = '14px';
-            label.style.fontWeight = 'bold';
-            label.style.color = 'white';
-        });
-        
-        // Force mobile prize box styling
-        const prizeBoxes = document.querySelectorAll('.mobile-prize');
-        prizeBoxes.forEach(box => {
-            box.style.width = '100%';
-            box.style.maxWidth = 'none';
-            box.style.margin = '0 0 12px 0';
-        });
-        
-        // Force mode button styling
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        modeBtns.forEach(btn => {
-            btn.style.minWidth = '80px';
-            btn.style.fontSize = '14px';
-            btn.style.padding = '10px 15px';
-        });
+        // Delay ticket generation to ensure cube is fully rendered
+        setTimeout(() => {
+            this.generateBingoTickets();
+            this.generateAIPlayers();
+            this.updateAllCountdowns();
+            this.updatePrizeAmounts();
+            
+            // Force another render after tickets are generated
+            this.renderer.render(this.scene, this.camera);
+        }, 100);
     }
     
     getCurrentPrizeLevel() {
@@ -227,6 +171,9 @@ class RubiksCubeBingo {
         // Initialize available numbers
         this.initializeAvailableNumbers();
         
+        // Force initial render to ensure numbers are visible
+        this.renderer.render(this.scene, this.camera);
+        
         // Start render loop
         this.animate();
     }
@@ -243,6 +190,9 @@ class RubiksCubeBingo {
         
         // Create 6 faces with bingo grids
         this.createBingoFaces();
+        
+        // Set initial cube rotation so numbers appear right-way up
+        this.cube.rotation.x = Math.PI; // Rotate 180 degrees around X-axis to flip upright
         
         this.scene.add(this.cube);
     }
@@ -353,19 +303,24 @@ class RubiksCubeBingo {
             faceGroup.children.forEach((squareGroup, index) => {
                 const number = squareGroup.userData.number;
                 
+                // Detect small screens and adjust text size accordingly
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const isVerySmallScreen = screenWidth < 400 || screenHeight < 600;
+                
+                // Adjust canvas size and font for small screens
+                const canvasSize = isVerySmallScreen ? 512 : 256; // Larger canvas for small screens
+                const fontSize = isVerySmallScreen ? 240 : 120; // Larger font for small screens
+                const planeSize = isVerySmallScreen ? 1.1 : 1.0; // Slightly larger plane for small screens
+                
                 // Create text for the number
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 256;
+                canvas.width = canvasSize;
+                canvas.height = canvasSize;
                 
                 // Make background transparent
-                context.clearRect(0, 0, 256, 256);
-                
-                // Use same font size as desktop to avoid mobile rendering thresholds
-                const fontSize = 120;
-                
-                console.log(`📝 Creating number ${number} with font size ${fontSize}px`);
+                context.clearRect(0, 0, canvasSize, canvasSize);
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
@@ -373,28 +328,30 @@ class RubiksCubeBingo {
                 context.font = `bold ${fontSize}px Arial`;
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
-                context.lineWidth = 6;
+                context.lineWidth = isVerySmallScreen ? 12 : 6; // Thicker outline for small screens
                 
-                context.strokeText(number.toString(), 128, 128);
-                context.fillText(number.toString(), 128, 128);
+                const centerPoint = canvasSize / 2;
+                context.strokeText(number.toString(), centerPoint, centerPoint);
+                context.fillText(number.toString(), centerPoint, centerPoint);
                 
                 const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true; // Force texture update for mobile
-                texture.flipY = false; // Ensure proper orientation
+                texture.needsUpdate = true;
                 
                 const textMaterial = new THREE.MeshBasicMaterial({ 
                     map: texture, 
                     transparent: true,
+                    alphaTest: 0.1, // Improve transparency handling
                     side: THREE.DoubleSide // Ensure visibility from all angles
                 });
-                const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
+                const textGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
                 const textMesh = new THREE.Mesh(textGeometry, textMaterial);
                 textMesh.position.z = 0.02;
                 
+                // Simple rotation to fix backwards text
+                textMesh.rotation.z = Math.PI;
+                
                 squareGroup.add(textMesh);
                 squareGroup.userData.textMesh = textMesh;
-                
-                console.log(`✅ Added number ${number} mesh to square group`);
             });
             
             this.faceTickets[faceIndex] = faceGroup.userData.squares;
@@ -446,15 +403,21 @@ class RubiksCubeBingo {
             event.stopPropagation();
         }, { passive: false });
         
-        // Close modal
-        document.getElementById('close-modal-btn').addEventListener('click', () => {
-            document.getElementById('win-modal').style.display = 'none';
-        });
+        // Close modal (only if button exists)
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                document.getElementById('win-modal').style.display = 'none';
+            });
+        }
         
-        // Close AI winner modal
-        document.getElementById('close-ai-modal-btn').addEventListener('click', () => {
-            document.getElementById('ai-win-modal').style.display = 'none';
-        });
+        // Close AI winner modal (only if button exists)
+        const closeAiModalBtn = document.getElementById('close-ai-modal-btn');
+        if (closeAiModalBtn) {
+            closeAiModalBtn.addEventListener('click', () => {
+                document.getElementById('ai-win-modal').style.display = 'none';
+            });
+        }
         
         // AI Players input change
         document.getElementById('ai-players-input').addEventListener('change', () => {
@@ -488,9 +451,6 @@ class RubiksCubeBingo {
             // Game hasn't started yet - start the game
             this.gameStarted = true;
             console.log('🎮 Game started by player');
-            
-            // Hide AI settings and prize sections during gameplay
-            this.hideGameSetupSections();
             
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
@@ -1056,99 +1016,36 @@ class RubiksCubeBingo {
         return Math.max(0, minNeeded);
     }
     
-    // Test function to verify HTML elements can be updated
-    testPrizeUpdates() {
-        console.log('🧪 Testing direct prize element updates');
-        const testPrizes = [
-            { id: 'one-side-amount', value: '£TEST1' },
-            { id: 'two-side-amount', value: '£TEST2' }, 
-            { id: 'three-side-amount', value: '£TEST3' },
-            { id: 'four-side-amount', value: '£TEST4' },
-            { id: 'five-side-amount', value: '£TEST5' }
-        ];
-        
-        testPrizes.forEach(prize => {
-            const element = document.getElementById(prize.id);
-            console.log(`🧪 Element ${prize.id} found:`, !!element);
-            if (element) {
-                element.textContent = prize.value;
-                console.log(`🧪 Set ${prize.id} to ${prize.value}`);
-            }
-        });
-    }
-
     updatePrizeAmounts() {
-        console.log('🎯 === STARTING PRIZE CALCULATION ===');
-        
-        const aiPlayersElement = document.getElementById('ai-players-input');
-        const priceSelectElement = document.getElementById('price-select');
-        
-        if (!aiPlayersElement || !priceSelectElement) {
-            console.error('❌ Required elements not found:', {
-                aiPlayersElement: !!aiPlayersElement,
-                priceSelectElement: !!priceSelectElement
-            });
-            return;
-        }
-        
-        const aiPlayersValue = aiPlayersElement.value;
-        const priceValue = priceSelectElement.value;
-        const numPlayers = parseInt(aiPlayersValue) + 1; // +1 for human player
+        const numPlayers = parseInt(document.getElementById('ai-players-input').value) + 1; // +1 for human player
         const totalPot = numPlayers * this.pricePerPlayer;
         
-        console.log(`� Calculation inputs:`);
-        console.log(`  - AI Players dropdown value: "${aiPlayersValue}"`);
-        console.log(`  - Price dropdown value: "${priceValue}"`);
-        console.log(`  - this.pricePerPlayer: ${this.pricePerPlayer}`);
-        console.log(`  - Total players: ${numPlayers}`);
-        console.log(`  - Total pot: ${totalPot}`);
+        // Calculate side prize amounts (updated percentages)
+        const oneSideAmount = totalPot * 0.05; // 5% for 1 side
+        const twoSideAmount = totalPot * 0.10; // 10% for 2 sides
+        const threeSideAmount = totalPot * 0.15; // 15% for 3 sides
+        const fourSideAmount = totalPot * 0.20; // 20% for 4 sides
+        const fiveSideAmount = totalPot * 0.30; // 30% for 5 sides
         
-        if (totalPot === 0 || isNaN(totalPot)) {
-            console.error('❌ Invalid total pot calculation');
-            return;
-        }
-        
-        // Calculate side prize amounts (updated percentages) - exact copy from desktop
-        const prizes = {
-            oneSide: totalPot * 0.05,   // 5% for 1 side
-            twoSide: totalPot * 0.10,   // 10% for 2 sides
-            threeSide: totalPot * 0.15, // 15% for 3 sides
-            fourSide: totalPot * 0.20,  // 20% for 4 sides
-            fiveSide: totalPot * 0.30   // 30% for 5 sides
-        };
-        
-        console.log(`💰 Prize amounts before rollover:`, prizes);
-        
-        // Update mobile prize amounts using direct ID targeting
+        // Update side prizes with rollover
         const sidePrizes = [
-            { key: 'oneSide', id: 'one-side-amount', amount: prizes.oneSide },
-            { key: 'twoSide', id: 'two-side-amount', amount: prizes.twoSide },
-            { key: 'threeSide', id: 'three-side-amount', amount: prizes.threeSide },
-            { key: 'fourSide', id: 'four-side-amount', amount: prizes.fourSide },
-            { key: 'fiveSide', id: 'five-side-amount', amount: prizes.fiveSide }
+            { key: 'oneSide', class: 'one-side-prize', amount: oneSideAmount },
+            { key: 'twoSide', class: 'two-side-prize', amount: twoSideAmount },
+            { key: 'threeSide', class: 'three-side-prize', amount: threeSideAmount },
+            { key: 'fourSide', class: 'four-side-prize', amount: fourSideAmount },
+            { key: 'fiveSide', class: 'five-side-prize', amount: fiveSideAmount }
         ];
         
         sidePrizes.forEach(prize => {
             const totalPrize = prize.amount + this.sidePrizeRollover[prize.key];
-            const prizeElement = document.getElementById(prize.id);
-            const formattedAmount = this.formatCurrency(totalPrize);
-            
-            console.log(`🎯 Updating ${prize.key}:`);
-            console.log(`  - Base amount: ${prize.amount}`);
-            console.log(`  - Rollover: ${this.sidePrizeRollover[prize.key]}`);
-            console.log(`  - Total: ${totalPrize}`);
-            console.log(`  - Formatted: ${formattedAmount}`);
-            console.log(`  - Element found: ${!!prizeElement}`);
-            
-            if (prizeElement) {
-                prizeElement.textContent = formattedAmount;
-                console.log(`✅ Successfully updated ${prize.id} to "${formattedAmount}"`);
-            } else {
-                console.error(`❌ Prize element not found: ${prize.id}`);
+            const prizeBox = document.querySelector(`.${prize.class}`);
+            if (prizeBox) {
+                const prizeValue = prizeBox.querySelector('.prize-value');
+                if (prizeValue) {
+                    prizeValue.textContent = this.formatCurrency(totalPrize);
+                }
             }
         });
-        
-        console.log('🎯 === PRIZE CALCULATION COMPLETE ===');
     }
     
     formatCurrency(amount) {
@@ -1180,8 +1077,8 @@ class RubiksCubeBingo {
         const button = document.getElementById('play-mode-btn');
         
         if (this.isAutoMode) {
-            button.textContent = 'Auto';
-            button.className = 'mode-btn auto';
+            button.textContent = 'Manual';
+            button.className = 'mode-btn manual';
             
             console.log('🔄 Switching to Auto Mode - INSTANT cube reset');
             
@@ -1197,8 +1094,8 @@ class RubiksCubeBingo {
             }
             
         } else {
-            button.textContent = 'Manual';
-            button.className = 'mode-btn manual';
+            button.textContent = 'Auto';
+            button.className = 'mode-btn auto';
             this.stopAutoPlay();
             
             // Update button text for manual mode
@@ -1981,9 +1878,6 @@ class RubiksCubeBingo {
         // Reset game start state - require manual start for new game
         this.gameStarted = false;
         
-        // Show AI settings and prize sections for new game setup
-        this.showGameSetupSections();
-        
         // Reset cube - remove and recreate
         this.scene.remove(this.cube);
         this.createRubiksCube();
@@ -2011,28 +1905,6 @@ class RubiksCubeBingo {
                 }
             }, 1000); // Wait for cube reset to complete
         }
-    }
-    
-    // Hide AI settings during gameplay (but keep prizes visible)
-    hideGameSetupSections() {
-        const aiSettingsRow = document.getElementById('ai-settings-row');
-        
-        if (aiSettingsRow) {
-            aiSettingsRow.style.display = 'none';
-        }
-        
-        console.log('🎮 Hiding AI settings for gameplay (prizes remain visible)');
-    }
-    
-    // Show AI settings when game ends
-    showGameSetupSections() {
-        const aiSettingsRow = document.getElementById('ai-settings-row');
-        
-        if (aiSettingsRow) {
-            aiSettingsRow.style.display = 'flex';
-        }
-        
-        console.log('🎮 Showing AI settings for game setup');
     }
     
     animate() {

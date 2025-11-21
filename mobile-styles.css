@@ -12,6 +12,11 @@ body {
     color: white;
     overflow-x: hidden;
     min-height: 100vh;
+    /* Prevent browser text size restrictions */
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    -ms-text-size-adjust: none;
+    text-size-adjust: none;
 }
 
 /* Header */
@@ -58,6 +63,10 @@ body {
     height: 100% !important;
     border-radius: 15px;
     touch-action: manipulation;
+    /* Ensure sharp rendering on mobile devices */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
 }
 
 /* Caller - Inline Layout for Mobile */
@@ -477,6 +486,24 @@ body {
     width: 90%;
     max-width: 400px;
     text-align: center;
+}
+
+/* Media queries for very small devices */
+@media screen and (max-width: 400px), screen and (max-height: 600px) {
+    #cube-container {
+        max-width: 300px;
+        height: 300px;
+        /* Force higher DPI rendering */
+        transform: scale(1.0);
+        transform-origin: center;
+    }
+    
+    /* Prevent browser zoom interference */
+    * {
+        -webkit-text-size-adjust: none !important;
+        -moz-text-size-adjust: none !important;
+        text-size-adjust: none !important;
+    }
 }
 
 .close-btn {

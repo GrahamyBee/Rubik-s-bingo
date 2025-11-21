@@ -1075,6 +1075,27 @@ class RubiksCubeBingo {
         return Math.max(0, minNeeded);
     }
     
+    // Test function to verify HTML elements can be updated
+    testPrizeUpdates() {
+        console.log('🧪 Testing direct prize element updates');
+        const testPrizes = [
+            { id: 'one-side-amount', value: '£TEST1' },
+            { id: 'two-side-amount', value: '£TEST2' }, 
+            { id: 'three-side-amount', value: '£TEST3' },
+            { id: 'four-side-amount', value: '£TEST4' },
+            { id: 'five-side-amount', value: '£TEST5' }
+        ];
+        
+        testPrizes.forEach(prize => {
+            const element = document.getElementById(prize.id);
+            console.log(`🧪 Element ${prize.id} found:`, !!element);
+            if (element) {
+                element.textContent = prize.value;
+                console.log(`🧪 Set ${prize.id} to ${prize.value}`);
+            }
+        });
+    }
+
     updatePrizeAmounts() {
         console.log('🎯 === STARTING PRIZE CALCULATION ===');
         
@@ -2043,5 +2064,23 @@ class RubiksCubeBingo {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new RubiksCubeBingo();
+    console.log('🚀 DOM Content Loaded - Starting mobile game initialization');
+    const game = new RubiksCubeBingo();
+    
+    // Add a manual test button for debugging
+    setTimeout(() => {
+        console.log('🧪 Adding manual test for prize calculation');
+        const testBtn = document.createElement('button');
+        testBtn.textContent = 'TEST PRIZES';
+        testBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; background: red; color: white; padding: 10px;';
+        testBtn.onclick = () => {
+            console.log('🧪 Manual test button clicked');
+            game.testPrizeUpdates();
+            setTimeout(() => {
+                console.log('🧪 Now running real updatePrizeAmounts');
+                game.updatePrizeAmounts();
+            }, 2000);
+        };
+        document.body.appendChild(testBtn);
+    }, 1000);
 });

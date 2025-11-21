@@ -109,13 +109,52 @@ class RubiksCubeBingo {
             this.pricePerPlayer = parseFloat(priceInput.value) || 10;
         }
         
-        // Ensure mode button has proper text
+        // Ensure mode button has proper text and mobile styling
         const modeBtn = document.getElementById('play-mode-btn');
         if (modeBtn) {
             modeBtn.textContent = this.isAutoMode ? 'Auto' : 'Manual';
+            modeBtn.className = `mode-btn ${this.isAutoMode ? 'auto' : 'manual'}`;
         }
         
+        // Force mobile styling on key elements
+        this.applyMobileForcedStyles();
+        
         console.log('✅ Mobile elements initialized');
+    }
+    
+    applyMobileForcedStyles() {
+        // Force proper input sizing
+        const inputs = document.querySelectorAll('input[type="number"], .mobile-input');
+        inputs.forEach(input => {
+            input.style.minWidth = '80px';
+            input.style.fontSize = '16px';
+            input.style.padding = '12px';
+            input.style.textAlign = 'center';
+        });
+        
+        // Ensure labels are visible and properly styled
+        const labels = document.querySelectorAll('.input-group label');
+        labels.forEach(label => {
+            label.style.fontSize = '14px';
+            label.style.fontWeight = 'bold';
+            label.style.color = 'white';
+        });
+        
+        // Force mobile prize box styling
+        const prizeBoxes = document.querySelectorAll('.mobile-prize');
+        prizeBoxes.forEach(box => {
+            box.style.width = '100%';
+            box.style.maxWidth = 'none';
+            box.style.margin = '0 0 12px 0';
+        });
+        
+        // Force mode button styling
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        modeBtns.forEach(btn => {
+            btn.style.minWidth = '80px';
+            btn.style.fontSize = '14px';
+            btn.style.padding = '10px 15px';
+        });
     }
     
     getCurrentPrizeLevel() {
@@ -1082,8 +1121,8 @@ class RubiksCubeBingo {
         const button = document.getElementById('play-mode-btn');
         
         if (this.isAutoMode) {
-            button.textContent = 'Manual';
-            button.className = 'mode-btn manual';
+            button.textContent = 'Auto';
+            button.className = 'mode-btn auto';
             
             console.log('🔄 Switching to Auto Mode - INSTANT cube reset');
             
@@ -1099,8 +1138,8 @@ class RubiksCubeBingo {
             }
             
         } else {
-            button.textContent = 'Auto';
-            button.className = 'mode-btn auto';
+            button.textContent = 'Manual';
+            button.className = 'mode-btn manual';
             this.stopAutoPlay();
             
             // Update button text for manual mode

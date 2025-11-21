@@ -93,81 +93,10 @@ class RubiksCubeBingo {
         
         this.init();
         this.setupEventListeners();
+        this.generateBingoTickets();
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
-        
-        // Multiple attempts to ensure numbers appear on mobile
-        this.forceNumbersToAppear();
-    }
-    
-    forceNumbersToAppear() {
-        console.log('🔄 Starting aggressive number generation for mobile...');
-        
-        // Attempt 1: Immediate
-        setTimeout(() => {
-            this.generateBingoTickets();
-            console.log('✅ Attempt 1: Initial generation');
-        }, 50);
-        
-        // Attempt 2: After short delay
-        setTimeout(() => {
-            this.ensureNumbersExist();
-            console.log('✅ Attempt 2: After 200ms');
-        }, 200);
-        
-        // Attempt 3: After longer delay
-        setTimeout(() => {
-            this.ensureNumbersExist();
-            console.log('✅ Attempt 3: After 500ms');
-        }, 500);
-        
-        // Attempt 4: After window load
-        if (document.readyState === 'loading') {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    this.ensureNumbersExist();
-                    console.log('✅ Attempt 4: After window load');
-                }, 100);
-            });
-        } else {
-            setTimeout(() => {
-                this.ensureNumbersExist();
-                console.log('✅ Attempt 4: Window already loaded');
-            }, 100);
-        }
-    }
-    
-    ensureNumbersExist() {
-        if (!this.cube || this.cube.children.length <= 1) {
-            console.log('⚠️ No cube found, skipping number check');
-            return;
-        }
-        
-        let hasNumbers = false;
-        let totalSquares = 0;
-        let squaresWithNumbers = 0;
-        
-        this.cube.children.slice(1).forEach((faceGroup) => {
-            if (faceGroup.children && faceGroup.children.length > 0) {
-                faceGroup.children.forEach((squareGroup) => {
-                    totalSquares++;
-                    if (squareGroup.userData && squareGroup.userData.textMesh) {
-                        squaresWithNumbers++;
-                        hasNumbers = true;
-                    }
-                });
-            }
-        });
-        
-        console.log(`📊 Numbers check: ${squaresWithNumbers}/${totalSquares} squares have numbers`);
-        
-        if (!hasNumbers || squaresWithNumbers < totalSquares) {
-            console.log('🔧 Regenerating missing numbers...');
-            this.generateBingoTickets();
-        } else {
-            console.log('✅ All numbers are present');
-        }
     }
     
     getCurrentPrizeLevel() {
@@ -197,38 +126,17 @@ class RubiksCubeBingo {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x222222);
         
-        // Get container for responsive sizing
-        const container = document.getElementById('cube-container');
-        const containerWidth = container.offsetWidth || 350;
-        const containerHeight = container.offsetHeight || 350;
-        
-        console.log(`📱 Container size: ${containerWidth}x${containerHeight}`);
-        
         // Camera setup - positioned to show cube straight on (front face)
-        this.camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, 600 / 600, 0.1, 1000);
         this.camera.position.set(0, 0, 6);
         this.camera.lookAt(0, 0, 0);
         
-        // Renderer setup - responsive to container size
-        this.renderer = new THREE.WebGLRenderer({ 
-            antialias: true,
-            alpha: false,
-            preserveDrawingBuffer: true
-        });
-        this.renderer.setSize(containerWidth, containerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        // Renderer setup
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(600, 600);
         
-        console.log(`🎮 Renderer size set to: ${containerWidth}x${containerHeight}`);
-        console.log(`📱 Device pixel ratio: ${window.devicePixelRatio}`);
-        
+        const container = document.getElementById('cube-container');
         container.appendChild(this.renderer.domElement);
-        
-        // Ensure canvas is properly styled for mobile
-        this.renderer.domElement.style.display = 'block';
-        this.renderer.domElement.style.width = '100%';
-        this.renderer.domElement.style.height = '100%';
-        
-        console.log('✅ Canvas added to container with mobile styling');
         
         // Controls - rotation only, no zoom or pan
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -376,30 +284,11 @@ class RubiksCubeBingo {
     }
     
     generateBingoTickets() {
-        console.log('🎯 Starting generateBingoTickets...');
-        
-        if (!this.cube) {
-            console.log('❌ No cube found, cannot generate tickets');
-            return;
-        }
-        
-        const faceGroups = this.cube.children.slice(1);
-        console.log(`📦 Found ${faceGroups.length} face groups`);
-        
         // For Rubik's cube, each square has a number and color
-        faceGroups.forEach((faceGroup, faceIndex) => {
-            console.log(`🔄 Processing face ${faceIndex}`);
-            
+        this.cube.children.slice(1).forEach((faceGroup, faceIndex) => {
             // Update face group with numbers and create text
             faceGroup.children.forEach((squareGroup, index) => {
-                // Remove existing text mesh if it exists
-                if (squareGroup.userData.textMesh) {
-                    squareGroup.remove(squareGroup.userData.textMesh);
-                    squareGroup.userData.textMesh = null;
-                }
-                
                 const number = squareGroup.userData.number;
-                console.log(`📝 Creating number ${number} for face ${faceIndex}, square ${index}`);
                 
                 // Create text for the number
                 const canvas = document.createElement('canvas');
@@ -410,11 +299,8 @@ class RubiksCubeBingo {
                 // Make background transparent
                 context.clearRect(0, 0, 256, 256);
                 
-                // Enhanced mobile detection and font sizing
-                const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const fontSize = isMobile ? 90 : 120;
-                
-                console.log(`📱 Mobile detected: ${isMobile}, fontSize: ${fontSize}, window width: ${window.innerWidth}`);
+                // Mobile-optimized font sizing
+                const fontSize = window.innerWidth < 768 ? 90 : 120;
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
@@ -424,18 +310,13 @@ class RubiksCubeBingo {
                 context.textBaseline = 'middle';
                 context.lineWidth = 6;
                 
-                // Draw text
                 context.strokeText(number.toString(), 128, 128);
                 context.fillText(number.toString(), 128, 128);
                 
-                // Create texture and material
                 const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true; // Force texture update
-                
                 const textMaterial = new THREE.MeshBasicMaterial({ 
                     map: texture, 
-                    transparent: true,
-                    side: THREE.DoubleSide // Make sure it's visible from all angles
+                    transparent: true 
                 });
                 const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
                 const textMesh = new THREE.Mesh(textGeometry, textMaterial);
@@ -443,14 +324,10 @@ class RubiksCubeBingo {
                 
                 squareGroup.add(textMesh);
                 squareGroup.userData.textMesh = textMesh;
-                
-                console.log(`✅ Added number ${number} to face ${faceIndex}, square ${index}`);
             });
             
             this.faceTickets[faceIndex] = faceGroup.userData.squares;
         });
-        
-        console.log('🎯 generateBingoTickets completed');
     }
     
     initializeAvailableNumbers() {
@@ -498,19 +375,6 @@ class RubiksCubeBingo {
             event.stopPropagation();
         }, { passive: false });
         
-        // Window resize handler for mobile orientation changes
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
-        
-        // Mobile orientation change handler
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                this.handleResize();
-                this.ensureNumbersExist();
-            }, 100);
-        });
-        
         // Close modal
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('win-modal').style.display = 'none';
@@ -548,34 +412,11 @@ class RubiksCubeBingo {
         });
     }
     
-    handleResize() {
-        console.log('📱 Handling resize/orientation change');
-        
-        const container = document.getElementById('cube-container');
-        const containerWidth = container.offsetWidth || 350;
-        const containerHeight = container.offsetHeight || 350;
-        
-        console.log(`📱 New container size: ${containerWidth}x${containerHeight}`);
-        
-        // Update camera aspect ratio
-        this.camera.aspect = containerWidth / containerHeight;
-        this.camera.updateProjectionMatrix();
-        
-        // Update renderer size
-        this.renderer.setSize(containerWidth, containerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        
-        console.log('✅ Renderer resized for mobile');
-    }
-    
     handleGameStartOrCall() {
         if (!this.gameStarted) {
             // Game hasn't started yet - start the game
             this.gameStarted = true;
             console.log('🎮 Game started by player');
-            
-            // Backup solution: Ensure cube and numbers are properly loaded
-            this.ensureCubeIsReady();
             
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
@@ -591,64 +432,6 @@ class RubiksCubeBingo {
             // Game is already running - make next call
             this.callNextNumber();
         }
-    }
-    
-    ensureCubeIsReady() {
-        console.log('🔧 Ensuring cube is ready with numbers...');
-        
-        // Check if cube exists and has faces
-        if (!this.cube || this.cube.children.length <= 1) {
-            console.log('⚠️ Cube not found or incomplete, recreating...');
-            this.recreateCube();
-            return;
-        }
-        
-        // Check if faces have squares with numbers
-        let hasNumbers = false;
-        let totalSquares = 0;
-        let squaresWithNumbers = 0;
-        
-        this.cube.children.slice(1).forEach((faceGroup) => {
-            if (faceGroup.children && faceGroup.children.length > 0) {
-                faceGroup.children.forEach((squareGroup) => {
-                    totalSquares++;
-                    if (squareGroup.userData && squareGroup.userData.textMesh) {
-                        squaresWithNumbers++;
-                        hasNumbers = true;
-                    }
-                });
-            }
-        });
-        
-        console.log(`📊 Cube check: ${squaresWithNumbers}/${totalSquares} squares have numbers`);
-        
-        if (!hasNumbers || squaresWithNumbers < 10) { // If less than 10 squares have numbers, regenerate
-            console.log('⚠️ Numbers missing or incomplete, regenerating...');
-            // Force regenerate multiple times for mobile
-            this.generateBingoTickets();
-            setTimeout(() => this.generateBingoTickets(), 100);
-            setTimeout(() => this.generateBingoTickets(), 300);
-        } else {
-            console.log('✅ Cube and numbers are ready');
-        }
-    }
-    
-    recreateCube() {
-        console.log('🔄 Recreating cube completely...');
-        
-        // Remove existing cube
-        if (this.cube) {
-            this.scene.remove(this.cube);
-        }
-        
-        // Create new cube
-        this.createRubiksCube();
-        
-        // Generate numbers
-        setTimeout(() => {
-            this.generateBingoTickets();
-            console.log('✅ Cube recreated with numbers');
-        }, 50);
     }
     
     callNextNumber() {
@@ -1794,14 +1577,10 @@ class RubiksCubeBingo {
     }
     
     onMouseClick(event) {
-        console.log('🖱️ Mouse click detected');
-        
         // Calculate mouse position
         const rect = this.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        console.log(`Mouse position: ${this.mouse.x}, ${this.mouse.y}`);
         
         // Cast ray
         this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -1814,21 +1593,11 @@ class RubiksCubeBingo {
             faceGroup.children.forEach(squareGroup => {
                 if (squareGroup.userData && squareGroup.userData.hasOwnProperty('colorNumberKey')) {
                     allSquares.push(squareGroup);
-                    // Also add individual meshes for better intersection detection
-                    squareGroup.children.forEach(child => {
-                        if (child.geometry) {
-                            allSquares.push(child);
-                        }
-                    });
                 }
             });
         });
         
-        console.log(`Found ${allSquares.length} interactive objects`);
-        
         const intersects = this.raycaster.intersectObjects(allSquares, true);
-        
-        console.log(`Ray intersected ${intersects.length} objects`);
         
         if (intersects.length > 0) {
             // Find the closest square group that was clicked
@@ -1841,23 +1610,15 @@ class RubiksCubeBingo {
             
             if (squareGroup && squareGroup.userData.hasOwnProperty('colorNumberKey')) {
                 const userData = squareGroup.userData;
-                console.log(`Clicked on square: ${userData.color}${userData.number}`);
                 
                 // Only mark if this exact color+number combination has been called
                 if (this.calledNumbers.has(userData.colorNumberKey)) {
-                    console.log(`✅ Marking square ${userData.colorNumberKey}`);
                     this.markSquare(squareGroup);
                     this.checkForWins(squareGroup.userData.faceIndex);
                     // Update countdown displays after marking a square
                     this.updateAllCountdowns();
-                } else {
-                    console.log(`❌ Number ${userData.colorNumberKey} hasn't been called yet`);
                 }
-            } else {
-                console.log('❌ No valid square found');
             }
-        } else {
-            console.log('❌ No intersections found');
         }
     }
     

@@ -105,10 +105,16 @@ class RubiksCubeBingo {
     initializeMobileElements() {
         console.log('🔧 Initializing mobile-specific elements...');
         
-        // Set initial price value from input
-        const priceInput = document.getElementById('price-per-player');
-        if (priceInput) {
-            this.pricePerPlayer = parseFloat(priceInput.value) || 10;
+        // Set initial price value from dropdown
+        const priceSelect = document.getElementById('price-select');
+        if (priceSelect) {
+            this.pricePerPlayer = parseFloat(priceSelect.value) || 2.0;
+        } else {
+            // Fallback to input if it exists
+            const priceInput = document.getElementById('price-per-player');
+            if (priceInput) {
+                this.pricePerPlayer = parseFloat(priceInput.value) || 10;
+            }
         }
         
         // Ensure mode button has proper text and mobile styling
@@ -459,22 +465,22 @@ class RubiksCubeBingo {
             this.updatePrizeAmounts();
         });
         
-        // Price input change (mobile uses number input, not dropdown)
+        // Price change event - prioritize dropdown (mobile) over input (legacy)
+        const priceSelect = document.getElementById('price-select');
         const priceInput = document.getElementById('price-per-player');
-        if (priceInput) {
+        
+        if (priceSelect) {
+            priceSelect.addEventListener('change', () => {
+                this.pricePerPlayer = parseFloat(priceSelect.value);
+                this.updatePrizeAmounts();
+                console.log(`💰 Price updated to: ${this.pricePerPlayer}`);
+            });
+        } else if (priceInput) {
             priceInput.addEventListener('change', () => {
                 this.pricePerPlayer = parseFloat(priceInput.value);
                 this.updatePrizeAmounts();
+                console.log(`💰 Price updated to: ${this.pricePerPlayer}`);
             });
-        } else {
-            // Fallback to price-select if it exists (desktop)
-            const priceSelect = document.getElementById('price-select');
-            if (priceSelect) {
-                priceSelect.addEventListener('change', () => {
-                    this.pricePerPlayer = parseFloat(priceSelect.value);
-                    this.updatePrizeAmounts();
-                });
-            }
         }
         
         // Play mode toggle

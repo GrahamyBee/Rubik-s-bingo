@@ -299,8 +299,8 @@ class RubiksCubeBingo {
                 // Make background transparent
                 context.clearRect(0, 0, 256, 256);
                 
-                // Mobile-optimized font sizing
-                const fontSize = window.innerWidth < 768 ? 90 : 120;
+                // Use same font size as desktop to avoid mobile rendering thresholds
+                const fontSize = 120;
                 
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';

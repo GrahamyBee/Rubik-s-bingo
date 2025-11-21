@@ -1959,34 +1959,26 @@ class RubiksCubeBingo {
         }
     }
     
-    // Hide AI settings and prize sections during gameplay
+    // Hide AI settings during gameplay (but keep prizes visible)
     hideGameSetupSections() {
         const aiSettingsRow = document.getElementById('ai-settings-row');
-        const prizesSection = document.getElementById('prizes-section');
         
         if (aiSettingsRow) {
             aiSettingsRow.style.display = 'none';
         }
-        if (prizesSection) {
-            prizesSection.style.display = 'none';
-        }
         
-        console.log('🎮 Hiding AI settings and prize sections for gameplay');
+        console.log('🎮 Hiding AI settings for gameplay (prizes remain visible)');
     }
     
-    // Show AI settings and prize sections when game ends
+    // Show AI settings when game ends
     showGameSetupSections() {
         const aiSettingsRow = document.getElementById('ai-settings-row');
-        const prizesSection = document.getElementById('prizes-section');
         
         if (aiSettingsRow) {
             aiSettingsRow.style.display = 'flex';
         }
-        if (prizesSection) {
-            prizesSection.style.display = 'block';
-        }
         
-        console.log('🎮 Showing AI settings and prize sections for game setup');
+        console.log('🎮 Showing AI settings for game setup');
     }
     
     animate() {

@@ -197,17 +197,38 @@ class RubiksCubeBingo {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x222222);
         
+        // Get container for responsive sizing
+        const container = document.getElementById('cube-container');
+        const containerWidth = container.offsetWidth || 350;
+        const containerHeight = container.offsetHeight || 350;
+        
+        console.log(`📱 Container size: ${containerWidth}x${containerHeight}`);
+        
         // Camera setup - positioned to show cube straight on (front face)
-        this.camera = new THREE.PerspectiveCamera(75, 600 / 600, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 1000);
         this.camera.position.set(0, 0, 6);
         this.camera.lookAt(0, 0, 0);
         
-        // Renderer setup
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(600, 600);
+        // Renderer setup - responsive to container size
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: false,
+            preserveDrawingBuffer: true
+        });
+        this.renderer.setSize(containerWidth, containerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
         
-        const container = document.getElementById('cube-container');
+        console.log(`🎮 Renderer size set to: ${containerWidth}x${containerHeight}`);
+        console.log(`📱 Device pixel ratio: ${window.devicePixelRatio}`);
+        
         container.appendChild(this.renderer.domElement);
+        
+        // Ensure canvas is properly styled for mobile
+        this.renderer.domElement.style.display = 'block';
+        this.renderer.domElement.style.width = '100%';
+        this.renderer.domElement.style.height = '100%';
+        
+        console.log('✅ Canvas added to container with mobile styling');
         
         // Controls - rotation only, no zoom or pan
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -477,6 +498,19 @@ class RubiksCubeBingo {
             event.stopPropagation();
         }, { passive: false });
         
+        // Window resize handler for mobile orientation changes
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+        
+        // Mobile orientation change handler
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.handleResize();
+                this.ensureNumbersExist();
+            }, 100);
+        });
+        
         // Close modal
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('win-modal').style.display = 'none';
@@ -512,6 +546,26 @@ class RubiksCubeBingo {
                 });
             }
         });
+    }
+    
+    handleResize() {
+        console.log('📱 Handling resize/orientation change');
+        
+        const container = document.getElementById('cube-container');
+        const containerWidth = container.offsetWidth || 350;
+        const containerHeight = container.offsetHeight || 350;
+        
+        console.log(`📱 New container size: ${containerWidth}x${containerHeight}`);
+        
+        // Update camera aspect ratio
+        this.camera.aspect = containerWidth / containerHeight;
+        this.camera.updateProjectionMatrix();
+        
+        // Update renderer size
+        this.renderer.setSize(containerWidth, containerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        console.log('✅ Renderer resized for mobile');
     }
     
     handleGameStartOrCall() {

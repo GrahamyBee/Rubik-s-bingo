@@ -1082,25 +1082,24 @@ class RubiksCubeBingo {
         const fourSideAmount = totalPot * 0.20; // 20% for 4 sides
         const fiveSideAmount = totalPot * 0.30; // 30% for 5 sides
         
-        // Update side prizes with rollover
-        const sidePrizes = [
-            { key: 'oneSide', class: 'one-side-prize', amount: oneSideAmount },
-            { key: 'twoSide', class: 'two-side-prize', amount: twoSideAmount },
-            { key: 'threeSide', class: 'three-side-prize', amount: threeSideAmount },
-            { key: 'fourSide', class: 'four-side-prize', amount: fourSideAmount },
-            { key: 'fiveSide', class: 'five-side-prize', amount: fiveSideAmount }
+        // Update mobile prize amounts using IDs
+        const prizes = [
+            { id: 'one-side-amount', key: 'oneSide', amount: oneSideAmount },
+            { id: 'two-side-amount', key: 'twoSide', amount: twoSideAmount },
+            { id: 'three-side-amount', key: 'threeSide', amount: threeSideAmount },
+            { id: 'four-side-amount', key: 'fourSide', amount: fourSideAmount },
+            { id: 'five-side-amount', key: 'fiveSide', amount: fiveSideAmount }
         ];
         
-        sidePrizes.forEach(prize => {
+        prizes.forEach(prize => {
             const totalPrize = prize.amount + this.sidePrizeRollover[prize.key];
-            const prizeBox = document.querySelector(`.${prize.class}`);
-            if (prizeBox) {
-                const prizeValue = prizeBox.querySelector('.prize-value');
-                if (prizeValue) {
-                    prizeValue.textContent = this.formatCurrency(totalPrize);
-                }
+            const prizeElement = document.getElementById(prize.id);
+            if (prizeElement) {
+                prizeElement.textContent = this.formatCurrency(totalPrize);
             }
         });
+        
+        console.log(`💰 Updated prizes for ${numPlayers} players at ${this.formatCurrency(this.pricePerPlayer)} each (Total: ${this.formatCurrency(totalPot)})`);
     }
     
     formatCurrency(amount) {

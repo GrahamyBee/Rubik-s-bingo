@@ -93,10 +93,29 @@ class RubiksCubeBingo {
         
         this.init();
         this.setupEventListeners();
+        this.initializeMobileElements(); // Initialize mobile-specific elements
         this.generateBingoTickets();
         this.generateAIPlayers();
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
+    }
+    
+    initializeMobileElements() {
+        console.log('🔧 Initializing mobile-specific elements...');
+        
+        // Set initial price value from input
+        const priceInput = document.getElementById('price-per-player');
+        if (priceInput) {
+            this.pricePerPlayer = parseFloat(priceInput.value) || 10;
+        }
+        
+        // Ensure mode button has proper text
+        const modeBtn = document.getElementById('play-mode-btn');
+        if (modeBtn) {
+            modeBtn.textContent = this.isAutoMode ? 'Auto' : 'Manual';
+        }
+        
+        console.log('✅ Mobile elements initialized');
     }
     
     getCurrentPrizeLevel() {
@@ -399,11 +418,23 @@ class RubiksCubeBingo {
             this.updatePrizeAmounts();
         });
         
-        // Price selection change
-        document.getElementById('price-select').addEventListener('change', () => {
-            this.pricePerPlayer = parseFloat(document.getElementById('price-select').value);
-            this.updatePrizeAmounts();
-        });
+        // Price input change (mobile uses number input, not dropdown)
+        const priceInput = document.getElementById('price-per-player');
+        if (priceInput) {
+            priceInput.addEventListener('change', () => {
+                this.pricePerPlayer = parseFloat(priceInput.value);
+                this.updatePrizeAmounts();
+            });
+        } else {
+            // Fallback to price-select if it exists (desktop)
+            const priceSelect = document.getElementById('price-select');
+            if (priceSelect) {
+                priceSelect.addEventListener('change', () => {
+                    this.pricePerPlayer = parseFloat(priceSelect.value);
+                    this.updatePrizeAmounts();
+                });
+            }
+        }
         
         // Play mode toggle
         document.getElementById('play-mode-btn').addEventListener('click', () => {

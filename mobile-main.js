@@ -88,11 +88,6 @@ class RubiksCubeBingo {
         this.animationStopped = false; // Flag to temporarily stop main animation loop
         this.gamePaused = false; // Flag to pause auto-play for winner announcements
         
-        // Face detection for haptic feedback
-        this.lastCheckedRotation = { x: 0, y: 0, z: 0 };
-        this.lastCorrectFaceCheck = 0;
-        this.hasTriggeredCorrectFaceHaptic = false;
-        
         // Progressive prize system - tracks which prize levels have been completed
         this.completedPrizeLevels = new Set(); // 'oneSide', 'twoSide', etc.
         
@@ -129,127 +124,14 @@ class RubiksCubeBingo {
         return levelMap[prizeLevel];
     }
     
-    // Haptic Feedback Methods
-    hapticFeedback(pattern = [50]) {
-        if (this.supportsHaptics && navigator.vibrate) {
-            navigator.vibrate(pattern);
-        }
-    }
-    
-    // Different haptic patterns for different actions
-    hapticButtonPress() {
-        this.hapticFeedback([30]); // Short tap
-    }
-    
-    hapticNumberCall() {
-        this.hapticFeedback([50, 50, 50]); // Triple pulse
-    }
-    
-    hapticSquareMark() {
-        this.hapticFeedback([25]); // Very short tap
-    }
-    
-    hapticWin() {
-        this.hapticFeedback([100, 50, 100, 50, 200]); // Victory pattern
-    }
-    
-    hapticGameStart() {
-        this.hapticFeedback([80, 40, 80]); // Double pulse
-    }
-    
-    hapticCorrectFace() {
-        this.hapticFeedback([60, 30, 60]); // Double pulse for finding correct face
-    }
-    
-    // Detect which face is currently most visible to the camera
-    getCurrentVisibleFace() {
-        if (!this.cube) return -1;
-        
-        // Get the camera direction vector
-        const cameraDirection = new THREE.Vector3(0, 0, -1);
-        cameraDirection.applyQuaternion(this.camera.quaternion);
-        
-        // Face normals in local cube space (before any rotation)
-        const faceNormals = [
-            new THREE.Vector3(0, 0, 1),   // 0: Front
-            new THREE.Vector3(0, 0, -1),  // 1: Back  
-            new THREE.Vector3(1, 0, 0),   // 2: Right
-            new THREE.Vector3(-1, 0, 0),  // 3: Left
-            new THREE.Vector3(0, 1, 0),   // 4: Top
-            new THREE.Vector3(0, -1, 0)   // 5: Bottom
-        ];
-        
-        // Transform face normals by cube rotation
-        const worldNormals = faceNormals.map(normal => {
-            const worldNormal = normal.clone();
-            worldNormal.applyQuaternion(this.cube.quaternion);
-            return worldNormal;
-        });
-        
-        // Find face most aligned with camera direction
-        let maxDot = -2;
-        let visibleFace = -1;
-        
-        worldNormals.forEach((normal, index) => {
-            const dot = normal.dot(cameraDirection);
-            if (dot > maxDot) {
-                maxDot = dot;
-                visibleFace = index;
+    // Simple haptic feedback
+    vibrate(pattern) {
+        try {
+            if (this.supportsHaptics && navigator.vibrate) {
+                navigator.vibrate(pattern);
             }
-        });
-        
-        return visibleFace;
-    }
-    
-    // Check if the current called number is on the currently visible face
-    checkForCorrectFaceHaptic() {
-        // Only check in manual mode when there's a current call
-        if (this.isAutoMode || !this.currentCall || !this.gameStarted) {
-            this.hasTriggeredCorrectFaceHaptic = false;
-            return;
-        }
-        
-        // Throttle checks to every 200ms
-        const now = Date.now();
-        if (now - this.lastCorrectFaceCheck < 200) return;
-        this.lastCorrectFaceCheck = now;
-        
-        // Check if rotation has changed significantly
-        const currentRotation = {
-            x: this.cube.rotation.x,
-            y: this.cube.rotation.y,
-            z: this.cube.rotation.z
-        };
-        
-        const rotationThreshold = 0.1; // Radians
-        const hasRotationChanged = 
-            Math.abs(currentRotation.x - this.lastCheckedRotation.x) > rotationThreshold ||
-            Math.abs(currentRotation.y - this.lastCheckedRotation.y) > rotationThreshold ||
-            Math.abs(currentRotation.z - this.lastCheckedRotation.z) > rotationThreshold;
-        
-        if (!hasRotationChanged) return;
-        
-        this.lastCheckedRotation = { ...currentRotation };
-        
-        // Get currently visible face
-        const visibleFace = this.getCurrentVisibleFace();
-        if (visibleFace === -1) return;
-        
-        // Check if the current call is on this face
-        if (this.faceTickets[visibleFace]) {
-            const hasCurrentCall = this.faceTickets[visibleFace].some(square => 
-                square && square.number === this.currentCall.number && 
-                square.color === this.currentCall.color
-            );
-            
-            if (hasCurrentCall && !this.hasTriggeredCorrectFaceHaptic) {
-                console.log(`🎯 Player found correct face! ${this.currentCall.color}${this.currentCall.number} is on visible face ${visibleFace}`);
-                this.hapticCorrectFace();
-                this.hasTriggeredCorrectFaceHaptic = true;
-            } else if (!hasCurrentCall) {
-                // Reset haptic flag when viewing a different face
-                this.hasTriggeredCorrectFaceHaptic = false;
-            }
+        } catch (e) {
+            // Silently fail if vibration not supported
         }
     }
     
@@ -555,13 +437,10 @@ class RubiksCubeBingo {
     }
     
     handleGameStartOrCall() {
-        this.hapticButtonPress(); // Haptic feedback for button press
-        
         if (!this.gameStarted) {
             // Game hasn't started yet - start the game
             this.gameStarted = true;
             console.log('🎮 Game started by player');
-            this.hapticGameStart(); // Special haptic for game start
             
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
@@ -585,16 +464,13 @@ class RubiksCubeBingo {
             return;
         }
         
-        this.hapticNumberCall(); // Haptic feedback for number call
+        this.vibrate([50, 50, 50]); // Haptic feedback for number call
         
         const calledItem = this.availableNumbers.pop();
         const calledKey = `${calledItem.color}${calledItem.number}`;
         this.calledNumbers.add(calledKey);
         this.currentCall = calledItem;
         this.callCount++;
-        
-        // Reset correct face haptic flag for new number
-        this.hasTriggeredCorrectFaceHaptic = false;
         
         // Update button text after first call
         if (this.callCount === 1) {
@@ -1189,7 +1065,7 @@ class RubiksCubeBingo {
     }
     
     togglePlayMode() {
-        this.hapticButtonPress(); // Haptic feedback for mode toggle
+        this.vibrate([30]); // Haptic feedback for button press
         this.isAutoMode = !this.isAutoMode;
         const button = document.getElementById('play-mode-btn');
         
@@ -1776,7 +1652,7 @@ class RubiksCubeBingo {
     markSquare(squareGroup) {
         if (squareGroup.userData.marked) return;
         
-        this.hapticSquareMark(); // Haptic feedback for square marking
+        this.vibrate([25]); // Haptic feedback for square marking
         squareGroup.userData.marked = true;
         
         // Add X mark for marked squares
@@ -1841,8 +1717,6 @@ class RubiksCubeBingo {
     }
     
     showSideWin(title, completedSides, prizeKey) {
-        this.hapticWin(); // Victory haptic feedback!
-        
         // Get the side names
         const sideNames = completedSides.map(side => side.name).join(', ');
         const details = `Completed ${completedSides.length} side${completedSides.length > 1 ? 's' : ''}: ${sideNames}`;
@@ -1903,8 +1777,6 @@ class RubiksCubeBingo {
     }
     
     resetGame() {
-        this.hapticButtonPress(); // Haptic feedback for reset
-        
         // Stop auto-play if running (but don't change the mode preference)
         this.stopAutoPlay();
         
@@ -2033,10 +1905,6 @@ class RubiksCubeBingo {
         requestAnimationFrame(() => this.animate());
         
         this.controls.update();
-        
-        // Check for correct face haptic feedback (only in manual mode)
-        this.checkForCorrectFaceHaptic();
-        
         this.renderer.render(this.scene, this.camera);
     }
 }

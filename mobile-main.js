@@ -97,10 +97,21 @@ class RubiksCubeBingo {
         this.updateAllCountdowns();
         this.updatePrizeAmounts();
         
-        // Generate bingo tickets after everything is set up to ensure numbers are visible
-        setTimeout(() => {
+        // Ensure everything is ready before generating numbers
+        this.waitForDOMReady(() => {
             this.generateBingoTickets();
-        }, 100);
+            console.log('✅ Initial cube setup complete');
+        });
+    }
+    
+    waitForDOMReady(callback) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(callback, 100);
+            });
+        } else {
+            setTimeout(callback, 100);
+        }
     }
     
     getCurrentPrizeLevel() {
@@ -422,6 +433,9 @@ class RubiksCubeBingo {
             this.gameStarted = true;
             console.log('🎮 Game started by player');
             
+            // Backup solution: Ensure cube and numbers are properly loaded
+            this.ensureCubeIsReady();
+            
             // If in auto mode, start auto-play instead of manual call
             if (this.isAutoMode) {
                 document.getElementById('call-number-btn').textContent = 'Auto Running...';
@@ -436,6 +450,54 @@ class RubiksCubeBingo {
             // Game is already running - make next call
             this.callNextNumber();
         }
+    }
+    
+    ensureCubeIsReady() {
+        console.log('🔧 Ensuring cube is ready with numbers...');
+        
+        // Check if cube exists and has faces
+        if (!this.cube || this.cube.children.length <= 1) {
+            console.log('⚠️ Cube not found or incomplete, recreating...');
+            this.recreateCube();
+            return;
+        }
+        
+        // Check if faces have squares with numbers
+        let hasNumbers = false;
+        this.cube.children.slice(1).forEach((faceGroup) => {
+            if (faceGroup.children && faceGroup.children.length > 0) {
+                faceGroup.children.forEach((squareGroup) => {
+                    if (squareGroup.userData && squareGroup.userData.textMesh) {
+                        hasNumbers = true;
+                    }
+                });
+            }
+        });
+        
+        if (!hasNumbers) {
+            console.log('⚠️ Numbers not found on cube, regenerating...');
+            this.generateBingoTickets();
+        } else {
+            console.log('✅ Cube and numbers are ready');
+        }
+    }
+    
+    recreateCube() {
+        console.log('🔄 Recreating cube completely...');
+        
+        // Remove existing cube
+        if (this.cube) {
+            this.scene.remove(this.cube);
+        }
+        
+        // Create new cube
+        this.createRubiksCube();
+        
+        // Generate numbers
+        setTimeout(() => {
+            this.generateBingoTickets();
+            console.log('✅ Cube recreated with numbers');
+        }, 50);
     }
     
     callNextNumber() {
@@ -1581,10 +1643,14 @@ class RubiksCubeBingo {
     }
     
     onMouseClick(event) {
+        console.log('🖱️ Mouse click detected');
+        
         // Calculate mouse position
         const rect = this.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        console.log(`Mouse position: ${this.mouse.x}, ${this.mouse.y}`);
         
         // Cast ray
         this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -1597,11 +1663,21 @@ class RubiksCubeBingo {
             faceGroup.children.forEach(squareGroup => {
                 if (squareGroup.userData && squareGroup.userData.hasOwnProperty('colorNumberKey')) {
                     allSquares.push(squareGroup);
+                    // Also add individual meshes for better intersection detection
+                    squareGroup.children.forEach(child => {
+                        if (child.geometry) {
+                            allSquares.push(child);
+                        }
+                    });
                 }
             });
         });
         
+        console.log(`Found ${allSquares.length} interactive objects`);
+        
         const intersects = this.raycaster.intersectObjects(allSquares, true);
+        
+        console.log(`Ray intersected ${intersects.length} objects`);
         
         if (intersects.length > 0) {
             // Find the closest square group that was clicked
@@ -1614,15 +1690,23 @@ class RubiksCubeBingo {
             
             if (squareGroup && squareGroup.userData.hasOwnProperty('colorNumberKey')) {
                 const userData = squareGroup.userData;
+                console.log(`Clicked on square: ${userData.color}${userData.number}`);
                 
                 // Only mark if this exact color+number combination has been called
                 if (this.calledNumbers.has(userData.colorNumberKey)) {
+                    console.log(`✅ Marking square ${userData.colorNumberKey}`);
                     this.markSquare(squareGroup);
                     this.checkForWins(squareGroup.userData.faceIndex);
                     // Update countdown displays after marking a square
                     this.updateAllCountdowns();
+                } else {
+                    console.log(`❌ Number ${userData.colorNumberKey} hasn't been called yet`);
                 }
+            } else {
+                console.log('❌ No valid square found');
             }
+        } else {
+            console.log('❌ No intersections found');
         }
     }
     

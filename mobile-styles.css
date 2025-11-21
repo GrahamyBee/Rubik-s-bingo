@@ -60,30 +60,33 @@ body {
     touch-action: manipulation;
 }
 
-/* Caller - Simple Layout */
+/* Caller - Inline Layout for Mobile */
 .caller-section {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
     justify-content: center;
     padding: 15px;
+    flex-wrap: nowrap;
 }
 
 #current-ball-position {
-    min-width: 80px;
-    min-height: 80px;
+    min-width: 70px;
+    min-height: 70px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 #previous-balls-container {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    max-width: 250px;
+    max-width: calc(100% - 90px);
     overflow: hidden;
+    justify-content: flex-start;
 }
 
 .previous-calls-header {
@@ -108,17 +111,18 @@ body {
 }
 
 .bingo-ball.current {
-    width: 80px;
-    height: 80px;
-    font-size: 1.5rem;
+    width: 70px;
+    height: 70px;
+    font-size: 1.4rem;
     animation: ballBounce 0.6s ease-out;
 }
 
 .bingo-ball.previous {
-    width: 45px;
-    height: 45px;
-    font-size: 14px;
+    width: 40px;
+    height: 40px;
+    font-size: 13px;
     opacity: 0.9;
+    flex-shrink: 0;
 }
 
 .bingo-ball::before {
@@ -390,8 +394,9 @@ body {
     }
     
     .caller-section {
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
+        padding: 10px;
     }
     
     #previous-balls-container {

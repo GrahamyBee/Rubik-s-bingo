@@ -302,6 +302,8 @@ class RubiksCubeBingo {
                 // Use same font size as desktop to avoid mobile rendering thresholds
                 const fontSize = 120;
                 
+                console.log(`📝 Creating number ${number} with font size ${fontSize}px`);
+                
                 // Add white text with black outline for visibility
                 context.fillStyle = '#ffffff';
                 context.strokeStyle = '#000000';
@@ -314,9 +316,13 @@ class RubiksCubeBingo {
                 context.fillText(number.toString(), 128, 128);
                 
                 const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true; // Force texture update for mobile
+                texture.flipY = false; // Ensure proper orientation
+                
                 const textMaterial = new THREE.MeshBasicMaterial({ 
                     map: texture, 
-                    transparent: true 
+                    transparent: true,
+                    side: THREE.DoubleSide // Ensure visibility from all angles
                 });
                 const textGeometry = new THREE.PlaneGeometry(1.0, 1.0);
                 const textMesh = new THREE.Mesh(textGeometry, textMaterial);
@@ -324,6 +330,8 @@ class RubiksCubeBingo {
                 
                 squareGroup.add(textMesh);
                 squareGroup.userData.textMesh = textMesh;
+                
+                console.log(`✅ Added number ${number} mesh to square group`);
             });
             
             this.faceTickets[faceIndex] = faceGroup.userData.squares;
